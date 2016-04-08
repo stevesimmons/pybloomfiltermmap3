@@ -14,6 +14,7 @@ import errno as eno
 import array
 import zlib
 import shutil
+import base64
 
 
 cdef extern int errno
@@ -314,16 +315,17 @@ cdef class BloomFilter:
 
     def to_base64(self):
         self._assert_open()
-        bfile = open(self.name, 'r')
-        result = zlib.compress(zlib.compress(bfile.read(), 9).encode('base64')).encode('base64')
+        bfile = open(self.name, 'r', encoding='latin_1')
+        fl_content = bfile.read().encode()
+        result = base64.b64encode(zlib.compress(base64.b64encode(zlib.compress(fl_content, 9))))
         bfile.close()
         return result
 
     @classmethod
     def from_base64(cls, filename, string, perm=0755):
         bfile_fp = os.open(filename, construct_mode('w+'), perm)
-        os.write(bfile_fp, zlib.decompress(zlib.decompress(
-            string.decode('base64')).decode('base64')))
+        os.write(bfile_fp, zlib.decompress(base64.b64decode(zlib.decompress(
+            base64.b64decode(string)))))
         os.close(bfile_fp)
         return cls.open(filename)
 

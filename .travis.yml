@@ -7,5 +7,4 @@ before_install:
   - pip install cython
 script:
   - cd $TRAVIS_BUILD_DIR
-  - python setup.py develop
-  - python -m unittest tests/*
+  - python setup.py test
