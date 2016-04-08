@@ -206,11 +206,12 @@ cdef class BloomFilter:
     def __contains__(self, item_):
         self._assert_open()
         cdef cbloomfilter.Key key
-        item = item_.encode()
-        if isinstance(item, str):
+        if isinstance(item_, str):
+            item = item_.encode()
             key.shash = item
             key.nhash = len(item)
         else:
+            item = item_
             key.shash = NULL
             key.nhash = hash(item)
         return cbloomfilter.bloomfilter_Test(self._bf, &key) == 1
@@ -234,11 +235,12 @@ cdef class BloomFilter:
     def add(self, item_):
         self._assert_open()
         cdef cbloomfilter.Key key
-        item = item_.encode()
-        if isinstance(item, str):
+        if isinstance(item_, str):
+            item = item_.encode()
             key.shash = item
             key.nhash = len(item)
         else:
+            item = item_
             key.shash = NULL
             key.nhash = hash(item)
 

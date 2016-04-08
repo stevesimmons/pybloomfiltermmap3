@@ -24,7 +24,7 @@ ext_modules = [
 ]
 
 if sys.version_info[0] < 3:
-    raise SystemError('This Package is for Python Version 3 and above.')
+  raise SystemError('This Package is for Python Version 3 and above.')
 
 setup(
   name='pybloomfiltermmap3',
