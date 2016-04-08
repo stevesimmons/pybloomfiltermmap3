@@ -69,7 +69,7 @@ cdef class BloomFilter:
             if os.path.exists(filename):
                 self._bf = cbloomfilter.bloomfilter_Create_Mmap(capacity,
                                                            error_rate,
-                                                           filename,
+                                                           filename.encode(),
                                                            0,
                                                            mode,
                                                            perm,
@@ -120,7 +120,7 @@ cdef class BloomFilter:
             if filename:
                 self._bf = cbloomfilter.bloomfilter_Create_Mmap(capacity,
                                                        error_rate,
-                                                       filename,
+                                                       filename.encode(),
                                                        num_bits,
                                                        mode,
                                                        perm,
@@ -203,9 +203,10 @@ cdef class BloomFilter:
         self._assert_open()
         cbloomfilter.mbarray_ClearAll(self._bf.array)
 
-    def __contains__(self, item):
+    def __contains__(self, item_):
         self._assert_open()
         cdef cbloomfilter.Key key
+        item = item_.encode()
         if isinstance(item, str):
             key.shash = item
             key.nhash = len(item)
@@ -230,9 +231,10 @@ cdef class BloomFilter:
         shutil.copy(self._bf.array.filename, filename)
         return self.__class__(self.ReadFile, 0.1, filename, perm=0)
 
-    def add(self, item):
+    def add(self, item_):
         self._assert_open()
         cdef cbloomfilter.Key key
+        item = item_.encode()
         if isinstance(item, str):
             key.shash = item
             key.nhash = len(item)
