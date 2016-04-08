@@ -15,8 +15,6 @@ ext_files = [
   'src/pybloomfilter.pyx'
 ]
 
-sys.path.insert(0, os.path.join(here, 'fake_pyrex'))
-
 print("info: Building from Cython")
 
 ext_modules = [
@@ -38,11 +36,14 @@ setup(
   install_requires=[],
   ext_modules=ext_modules,
   classifiers=[
+    'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: C',
     'Programming Language :: Cython',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
     'Topic :: Software Development :: Libraries :: Python Modules',
   ],
   cmdclass={'build_ext': build_ext}
