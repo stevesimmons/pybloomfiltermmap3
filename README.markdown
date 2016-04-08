@@ -1,17 +1,21 @@
-# pybloomfiltermmap [![Build Status](https://secure.travis-ci.org/axiak/pybloomfiltermmap.png?branch=master)](http://travis-ci.org/axiak/pybloomfiltermmap)
+# pybloomfiltermmap3
 
-The goal of `pybloomfiltermmap` is simple: to provide a fast, simple, scalable,
-correct library for Bloom Filters in Python.
+`pybloomfiltermmap3` is a `Python 3` compatible fork of `pybloomfiltermmap` by @axiak.
 
-## Docs
+The goal of `pybloomfiltermmap3` is simple: to provide a fast, simple, scalable, correct library for Bloom Filters in Python.
 
-See <http://axiak.github.com/pybloomfiltermmap/>.
+[![Build Status](https://travis-ci.org/PrashntS/pybloomfiltermmap3.svg?branch=master)](https://travis-ci.org/PrashntS/pybloomfiltermmap3)
+[![PyPI](https://img.shields.io/pypi/v/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
+[![PyPI](https://img.shields.io/pypi/dw/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
+[![PyPI](https://img.shields.io/pypi/pyversions/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
 
-## Overview
+
+## Quickstart
 
 After you install, the interface to use is a cross between a file
 interface and a ste interface. As an example:
-
+```python
+    >>> import pybloomfilter
     >>> fruit = pybloomfilter.BloomFilter(100000, 0.1, '/tmp/words.bloom')
     >>> fruit.update(('apple', 'pear', 'orange', 'apple'))
     >>> len(fruit)
@@ -20,18 +24,25 @@ interface and a ste interface. As an example:
     False
     >>> 'apple' in fruit
     True
+```
+
+## Docs
+
+Follow the *official* docs for `pybloomfiltermmap`. http://axiak.github.io/pybloomfiltermmap/
 
 ## Install
 
-You may or may not want to use Cython. If you have it installed, the
-setup file will build the C file from the pyx file. Otherwise, it will
-skip that step automatically and build from the packaged C file.
+Please have `Cython` installed. Please note that this version is **specifically** meant for Python 3. In case you need Python 2, please see https://github.com/axiak/pybloomfiltermmap.
 
 To install:
 
-   $ sudo python setup.py install
+```shell
+    $ pip install cython
+    $ pip install pybloomfiltermmap3
+```
 
 and you should be set.
+
 
 ## License
 
