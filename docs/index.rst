@@ -6,15 +6,17 @@
 Welcome to Python BloomFilter's documentation!
 ==============================================
 
-If you are here, you probably don't need to be reminded
-about the nature of a Bloom filter. If you need to learn
-more, just visit the `wikipedia page <http://en.wikipedia.org/wiki/Bloom_filter>`_
-to learn more. This module implements a Bloom filter in python
-that's fast and uses mmap files for better scalability.
-Did I mention that it's fast?
+`pybloomfiltermmap3` is a Python 3  fork of `pybloomfiltermmap` by `Michael Axiak (@axiak) <https://github.com/axiak>`_.
+
+Bloom filter is a probablilistic data structure used to test whether an element
+is a member of a set. The `wikipedia page <http://en.wikipedia.org/wiki/Bloom_filter>`_
+has further information on their nature. This module implements a Bloom filter
+in python that's fast and uses mmap files for better scalability.
 
 Here's a quick example::
-    
+
+.. code:: python
+
     from pybloomfilter import BloomFilter
 
     bf = BloomFilter(10000000, 0.01, 'filter.bloom')
@@ -29,6 +31,8 @@ Here's a quick example::
 That wasn't so hard, was it? Now, there are a lot of other things
 we can do. For instance, let's say we want to create a similar
 filter with just a few pieces of fruit::
+
+.. code:: python
 
     fruitbf = bf.copy_template("fruit.bloom")
     fruitbf.update(("apple", "banana", "orange", "pear"))
@@ -59,57 +63,23 @@ All of the reference information is available below:
 Why pybloomfilter
 ---------------------
 
-As I already mentioned, there are a couple reasons to use this
-module:
+As already mentioned, there are a couple reasons to use this module:
 
  * It natively uses `mmaped files <http://en.wikipedia.org/wiki/Mmap>`_.
  * It natively does the set things you want a Bloom filter to do.
- * It is Fast (see Benchmarks).
+ * It is Fast (see Benchmarks by Michael Axiak).
 
-Benchmarks
----------------------
-
-Simple load and add speed
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-I have a simple benchmark in `test/speedtest.py <http://github.com/axiak/pybloomfiltermmap/blob/master/tests/speedtest.py>`_ which compares
-this module to the good
-`pybloom module <http://github.com/jaybaird/python-bloomfilter/>`_::
-
-
-    (pybloom module)
-    pybloom load took 0.76436 s/run
-    pybloom tests took 0.16205 s/run
-    Errors: 0.25% positive 0.00% negative
-
-    (this module)
-    pybloomfilter load took 0.05423 s/run
-    pybloomfilter tests took 0.00659 s/run
-    Errors: 0.26% positive 0.00% negative
-
-
-In this test we just looked at adding words from a dictionary file,
-then testing to see if each word of another file was in the dictionary.
-
-Serialization
-^^^^^^^^^^^^^^^^^
-
-Since this package natively uses mmap files, **no serialization is needed**.
-Therefore, if you have to do a lot of moving between disks etc, this
-module is an obvious win.
 
 Install
 ---------------------
 
-You do not need Cython to install from sources, since I keep a cached version
-of the c output in the source distribution. Thus, to install you should only
-need to run::
+Please have `Cython` installed. Please note that this version is for Python 3.
+In case you are using Python 2, please see https://github.com/axiak/pybloomfiltermmap.
 
-    $ sudo pip install pybloomfiltermmap
+To install:
 
-You can also download the latest tar file from the `github tags <https://github.com/axiak/pybloomfiltermmap/tags>`_. Once you download it, you should only have to run::
-
-    $ sudo python setup.py install
+    $ pip install cython
+    $ pip install pybloomfiltermmap3
 
 to build and install the module.
 
