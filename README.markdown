@@ -26,6 +26,12 @@ interface and a ste interface. As an example:
     True
 ```
 
+To create an in-memory filter, ditch the file location.
+```python
+    >>> cakes = pybloomfilter.BloomFilter(10000, 0.1)
+```
+*Caveates*: It is currently not possible to persist this filter later.
+
 ## Docs
 
 Follow the *official* docs for `pybloomfiltermmap`. http://axiak.github.io/pybloomfiltermmap/
