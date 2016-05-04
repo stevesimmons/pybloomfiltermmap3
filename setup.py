@@ -2,7 +2,18 @@ import os
 import sys
 
 from setuptools import setup, Extension
-from Cython.Distutils import build_ext
+
+try:
+  from Cython.Distutils import build_ext
+except ImportError:
+  print("""Cannot find Cython!
+  Cython is required to correctly build pyBloomFilter's C extensions.
+  In most cases, running the following command should be sufficient:
+    $ pip install Cython
+
+  Exception: ImportError
+  """)
+  exit()
 
 here = os.path.dirname(__file__)
 
