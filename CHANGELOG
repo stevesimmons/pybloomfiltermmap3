@@ -1,5 +1,8 @@
+0.4.16 2019-08-24)
+ - Fix r/w of base64 encoded filter files (@gaetano-guerriero).          [BUG]
+
 0.4.14 2016-04-09)
-  - Remove Python 2 support, added Python 3 support.                     [FEATURE]
+ - Remove Python 2 support, added Python 3 support.                      [FEATURE]
 
 0.3.6 2012-10-21)
  - Minor cosmetic changes to reduce noise in clang. Might have fixed
