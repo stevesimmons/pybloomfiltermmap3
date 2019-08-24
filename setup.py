@@ -16,6 +16,10 @@ except ImportError:
   exit()
 
 here = os.path.dirname(__file__)
+# Get the long description from the README file
+with open(os.path.join(here, 'README.markdown'), encoding='utf-8') as fp:
+  long_description = fp.read()
+
 
 ext_files = [
   'src/mmapbitarray.c',
@@ -37,11 +41,13 @@ if sys.version_info[0] < 3:
 
 setup(
   name='pybloomfiltermmap3',
-  version="0.4.16",
+  version="0.4.17",
   author="Michael Axiak, Rob Stacey, Prashant Sinha",
   author_email="prashant@noop.pw",
   url="https://github.com/prashnts/pybloomfiltermmap3",
   description="A Bloom filter (bloomfilter) for Python 3 built on mmap",
+  long_description=long_description,
+  long_description_content_type='text/markdown',
   license="MIT License",
   test_suite='tests.test_all',
   install_requires=[],

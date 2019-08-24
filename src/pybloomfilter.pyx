@@ -1,4 +1,4 @@
-VERSION = (0, 4, 16)
+VERSION = (0, 4, 17)
 AUTHOR = "Michael Axiak"
 
 __VERSION__ = VERSION
