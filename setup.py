@@ -37,10 +37,10 @@ if sys.version_info[0] < 3:
 
 setup(
   name='pybloomfiltermmap3',
-  version="0.4.15",
+  version="0.4.16",
   author="Michael Axiak, Rob Stacey, Prashant Sinha",
-  author_email="prashant@ducic.ac.in",
-  url="https://github.com/PrashntS/pybloomfiltermmap3",
+  author_email="prashant@noop.pw",
+  url="https://github.com/prashnts/pybloomfiltermmap3",
   description="A Bloom filter (bloomfilter) for Python 3 built on mmap",
   license="MIT License",
   test_suite='tests.test_all',
