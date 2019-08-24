@@ -143,7 +143,6 @@ class SimpleTestCase(unittest.TestCase):
                      'unexpected perms %s' % oct_mode)
 
     @with_test_file
-    @unittest.expectedFailure
     def test_to_from_base64(self, filename):
         self._populate_filter(self.bf)
         self.bf.sync()

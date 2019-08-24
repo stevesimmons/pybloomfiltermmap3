@@ -315,8 +315,8 @@ cdef class BloomFilter:
 
     def to_base64(self):
         self._assert_open()
-        bfile = open(self.name, 'r', encoding='latin_1')
-        fl_content = bfile.read().encode()
+        bfile = open(self.name, 'rb')
+        fl_content = bfile.read()
         result = base64.b64encode(zlib.compress(base64.b64encode(zlib.compress(fl_content, 9))))
         bfile.close()
         return result
