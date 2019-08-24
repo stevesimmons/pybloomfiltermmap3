@@ -14,6 +14,7 @@ import errno as eno
 import array
 import zlib
 import shutil
+import sys
 import base64
 
 
@@ -113,7 +114,7 @@ cdef class BloomFilter:
 
             hash_seeds = array.array('I')
             hash_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
-            test = hash_seeds.tostring()
+            test = _array_tobytes(hash_seeds)
             seeds = test
 
             # If a filename is provided, we should make a mmap-file
@@ -149,7 +150,9 @@ cdef class BloomFilter:
         def __get__(self):
             self._assert_open()
             result = array.array('I')
-            result.fromstring((<char *>self._bf.hash_seeds)[:4 * self.num_hashes])
+            _array_frombytes(
+                result, (<char *>self._bf.hash_seeds)[:4 * self.num_hashes]
+            )
             return result
 
     property capacity:
@@ -315,8 +318,8 @@ cdef class BloomFilter:
 
     def to_base64(self):
         self._assert_open()
-        bfile = open(self.name, 'r', encoding='latin_1')
-        fl_content = bfile.read().encode()
+        bfile = open(self.name, 'rb')
+        fl_content = bfile.read()
         result = base64.b64encode(zlib.compress(base64.b64encode(zlib.compress(fl_content, 9))))
         bfile.close()
         return result
@@ -332,3 +335,17 @@ cdef class BloomFilter:
     @classmethod
     def open(cls, filename):
         return cls(cls.ReadFile, 0.1, filename, 0)
+
+
+def _array_tobytes(ar):
+    if sys.version_info >= (3, 2):
+        return ar.tobytes()
+    else:
+        return ar.tostring()
+
+
+def _array_frombytes(ar, s):
+    if sys.version_info >= (3, 2):
+        return ar.frombytes(s)
+    else:
+        return ar.fromstring(s)
