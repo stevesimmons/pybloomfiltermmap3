@@ -5,3 +5,4 @@ pbutler - Fix memory leak
 Dan Crosta - Convert MurmurHash3 to C from C++
 prashnts - Python 3 fork
 gaetano-guerriero - Fixed base64 dumps
+mizvyt - Fixed missing cython dependency
