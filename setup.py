@@ -50,7 +50,7 @@ setup(
   long_description_content_type='text/markdown',
   license="MIT License",
   test_suite='tests.test_all',
-  install_requires=[],
+  install_requires=['Cython'],
   ext_modules=ext_modules,
   classifiers=[
     'Development Status :: 4 - Beta',
