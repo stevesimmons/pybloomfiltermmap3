@@ -6,3 +6,4 @@ Dan Crosta - Convert MurmurHash3 to C from C++
 prashnts - Python 3 fork
 gaetano-guerriero - Fixed base64 dumps
 mizvyt - Fixed missing cython dependency
+gonzalezzfelipe - Fixed buggy "copy template" method
