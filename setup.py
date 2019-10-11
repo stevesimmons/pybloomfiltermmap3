@@ -41,7 +41,7 @@ if sys.version_info[0] < 3:
 
 setup(
   name='pybloomfiltermmap3',
-  version="0.4.18",
+  version="0.4.19",
   author="Michael Axiak, Rob Stacey, Prashant Sinha",
   author_email="prashant@noop.pw",
   url="https://github.com/prashnts/pybloomfiltermmap3",
