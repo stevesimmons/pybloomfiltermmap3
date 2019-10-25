@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 VERSION = (0, 4, 19)
 AUTHOR = "Michael Axiak"
 
