@@ -4,22 +4,22 @@ import sys
 from setuptools import setup, Extension
 
 if sys.version_info[0] < 3:
-    raise SystemError('This package is for Python version 3 and above.')
+    raise SystemError("This package is for Python version 3 and above.")
 
 here = os.path.dirname(__file__)
 
 # Get the long description from the README file
-with open(os.path.join(here, 'README.markdown'), encoding='utf-8') as fp:
+with open(os.path.join(here, "README.markdown"), encoding="utf-8") as fp:
     long_description = fp.read()
 
 setup_kwargs = {}
 
 ext_files = [
-    'src/mmapbitarray.c',
-    'src/bloomfilter.c',
-    'src/md5.c',
-    'src/primetester.c',
-    'src/MurmurHash3.c',
+    "src/mmapbitarray.c",
+    "src/bloomfilter.c",
+    "src/md5.c",
+    "src/primetester.c",
+    "src/MurmurHash3.c"
 ]
 
 try:
@@ -43,32 +43,32 @@ if "--cython" in sys.argv:
     sys.argv.remove("--cython")
 
 ext_modules = [
-    Extension("pybloomfilter", ext_files, libraries=['crypto'])
+    Extension("pybloomfilter", ext_files, libraries=["crypto"])
 ]
 
 setup(
-    name='pybloomfiltermmap3',
+    name="pybloomfiltermmap3",
     version="0.4.19",
     author="Michael Axiak, Rob Stacey, Prashant Sinha",
     author_email="prashant@noop.pw",
     url="https://github.com/prashnts/pybloomfiltermmap3",
     description="A Bloom filter (bloomfilter) for Python 3 built on mmap",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     license="MIT License",
-    test_suite='tests.test_all',
+    test_suite="tests.test_all",
     install_requires=[],
     ext_modules=ext_modules,
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: C',
-        'Programming Language :: Cython',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: C",
+        "Programming Language :: Cython",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    **setup_kwargs,
+    **setup_kwargs
 )
