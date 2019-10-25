@@ -13,7 +13,7 @@ The goal of `pybloomfiltermmap3` is simple: to provide a fast, simple, scalable,
 ## Quickstart
 
 After you install, the interface to use is a cross between a file
-interface and a ste interface. As an example:
+interface and an ste interface. As an example:
 ```python
     >>> import pybloomfilter
     >>> fruit = pybloomfilter.BloomFilter(100000, 0.1, '/tmp/words.bloom')
@@ -26,24 +26,25 @@ interface and a ste interface. As an example:
     True
 ```
 
-To create an in-memory filter, ditch the file location.
+To create an in-memory filter, simply omit the file location:
 ```python
     >>> cakes = pybloomfilter.BloomFilter(10000, 0.1)
 ```
-*Caveates*: It is currently not possible to persist this filter later.
+*Caveat*: It is currently not possible to persist this filter later.
+
 
 ## Docs
 
-Follow the *official* docs for `pybloomfiltermmap`. http://axiak.github.io/pybloomfiltermmap/
+Follow the *official* docs for `pybloomfiltermmap` at: http://axiak.github.io/pybloomfiltermmap/
+
 
 ## Install
 
-Please have `Cython` installed. Please note that this version is **specifically** meant for Python 3. In case you need Python 2, please see https://github.com/axiak/pybloomfiltermmap.
+Please note that this version is **specifically** meant for Python 3. In case you need Python 2, please see https://github.com/axiak/pybloomfiltermmap.
 
 To install:
 
 ```shell
-    $ pip install cython
     $ pip install pybloomfiltermmap3
 ```
 
@@ -53,4 +54,10 @@ and you should be set.
 ## License
 
 See the LICENSE file. It's under the MIT License.
+
+
+## Contributions and development
+
+When contributing, you should set up an appropriate Python 3 environment and install the dependencies listed in `requirements-dev.txt`.
+This package depends on generation of `pybloomfilter.c` and requires Cython to be packaged.
 
