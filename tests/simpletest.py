@@ -2,7 +2,7 @@ import os
 import string
 import unittest
 import tempfile
-from random import randint, choice
+from random import randint, choice, getrandbits
 
 import pybloomfilter
 
@@ -226,6 +226,37 @@ class SimpleTestCase(unittest.TestCase):
             self.assertPropertiesPreserved(self.bf, bf2)
             bf2.union(self.bf)  # Asserts copied bloom filter is comparable
             self._check_filter_contents(bf2)
+
+    def test_create_with_hash_seeds(self):
+        cust_seeds = [getrandbits(32) for i in range(30)]
+        bf = pybloomfilter.BloomFilter(self.FILTER_SIZE,
+                                       self.FILTER_ERROR_RATE,
+                                       self.tempfile.name,
+                                       hash_seeds=cust_seeds)
+        bf_seeds = bf.hash_seeds.tolist()
+        self.assertEqual(cust_seeds, bf_seeds)
+
+    def test_create_with_hash_seeds_and_compare(self):
+        test_data = "test"
+        bf1 = pybloomfilter.BloomFilter(self.FILTER_SIZE,
+                                        self.FILTER_ERROR_RATE,
+                                        self.tempfile.name)
+        bf1.add(test_data)
+        bf1_seeds = bf1.hash_seeds.tolist()
+        bf1_base64 = bf1.to_base64()
+        bf1.close()
+
+        bf2 = pybloomfilter.BloomFilter(self.FILTER_SIZE,
+                                        self.FILTER_ERROR_RATE,
+                                        self.tempfile.name,
+                                        hash_seeds=bf1_seeds)
+        bf2.add(test_data)
+        bf2_seeds = bf2.hash_seeds.tolist()
+        bf2_base64 = bf2.to_base64()
+        bf2.close()
+
+        self.assertEqual(bf1_seeds, bf2_seeds)
+        self.assertEqual(bf1_base64, bf2_base64)
 
 
 def suite():
