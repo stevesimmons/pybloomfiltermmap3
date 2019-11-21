@@ -21,8 +21,20 @@ import base64
 
 
 cdef extern int errno
+cdef NoConstruct = object()
+cdef ReadFile = object()
 
-cdef construct_mode(mode):
+
+cdef _construct_access(mode):
+    result = os.F_OK
+    if 'w' in mode:
+        result |= os.W_OK
+    if 'r' in mode:
+        result |= os.R_OK
+    return result
+
+
+cdef _construct_mode(mode):
     result = os.O_RDONLY
     if 'w' in mode:
         result |= os.O_RDWR
@@ -32,10 +44,10 @@ cdef construct_mode(mode):
         result |= os.O_CREAT
     return result
 
-cdef NoConstruct = object()
 
 class IndeterminateCountError(ValueError):
     pass
+
 
 cdef class BloomFilter:
     """
@@ -45,37 +57,44 @@ cdef class BloomFilter:
     cdef cbloomfilter.BloomFilter * _bf
     cdef int _closed
     cdef int _in_memory
+    cdef int _oflags
     cdef public ReadFile
 
-    def __cinit__(self, capacity, error_rate, filename=None, perm=0755, hash_seeds=None):
+    def __cinit__(self, capacity, error_rate, filename=None, mode="rw+", perm=0755, hash_seeds=None):
         cdef char * seeds
         cdef long long num_bits
+        cdef int _capacity
+
         self._closed = 0
         self._in_memory = 0
+        self._oflags = os.O_RDWR
         self.ReadFile = self.__class__.ReadFile
-        mode = "rw+"
+
         if filename is NoConstruct:
             return
 
         if capacity is self.ReadFile:
-            mode = "rw"
-            capacity = 0
+            # Create should not be allowed in read mode
+            mode = mode.replace("+", "")
+            _capacity = 0
+
             if not os.path.exists(filename):
                 raise OSError("File %s not found" % filename)
 
-            if not os.access(filename, os.O_RDWR):
+            if not os.access(filename, _construct_access(mode)):
                 raise OSError("Insufficient permissions for file %s" % filename)
+        else:
+            _capacity = capacity
 
-        mode = construct_mode(mode)
+        self._oflags = _construct_mode(mode)
 
-
-        if not mode & os.O_CREAT:
+        if not self._oflags & os.O_CREAT:
             if os.path.exists(filename):
-                self._bf = cbloomfilter.bloomfilter_Create_Mmap(capacity,
+                self._bf = cbloomfilter.bloomfilter_Create_Mmap(_capacity,
                                                            error_rate,
                                                            filename.encode(),
                                                            0,
-                                                           mode,
+                                                           self._oflags,
                                                            perm,
                                                            NULL, 0)
                 if self._bf is NULL:
@@ -134,17 +153,17 @@ cdef class BloomFilter:
             # If a filename is provided, we should make a mmap-file
             # backed bloom filter. Otherwise, it will be malloc
             if filename:
-                self._bf = cbloomfilter.bloomfilter_Create_Mmap(capacity,
+                self._bf = cbloomfilter.bloomfilter_Create_Mmap(_capacity,
                                                        error_rate,
                                                        filename.encode(),
                                                        num_bits,
-                                                       mode,
+                                                       self._oflags,
                                                        perm,
                                                        <int *>seeds,
                                                        num_hashes)
             else:
                 self._in_memory = 1
-                self._bf = cbloomfilter.bloomfilter_Create_Malloc(capacity,
+                self._bf = cbloomfilter.bloomfilter_Create_Malloc(_capacity,
                                                        error_rate,
                                                        num_bits,
                                                        <int *>seeds,
@@ -197,7 +216,14 @@ cdef class BloomFilter:
                                           'in-memory %s' %
                                           self.__class__.__name__)
 
+            if self._bf.array.filename is NULL:
+                return None
             return self._bf.array.filename
+
+    property read_only:
+        def __get__(self):
+            self._assert_open()
+            return not self._in_memory and not self._oflags & os.O_RDWR
 
     def fileno(self):
         self._assert_open()
@@ -215,10 +241,12 @@ cdef class BloomFilter:
 
     def sync(self):
         self._assert_open()
+        self._assert_writable()
         cbloomfilter.mbarray_Sync(self._bf.array)
 
     def clear_all(self):
         self._assert_open()
+        self._assert_writable()
         cbloomfilter.mbarray_ClearAll(self._bf.array)
 
     def __contains__(self, item_):
@@ -252,6 +280,7 @@ cdef class BloomFilter:
 
     def add(self, item_):
         self._assert_open()
+        self._assert_writable()
         cdef cbloomfilter.Key key
         if isinstance(item_, str):
             item = item_.encode()
@@ -268,7 +297,6 @@ cdef class BloomFilter:
         return bool(result)
 
     def update(self, iterable):
-        self._assert_open()
         for item in iterable:
             self.add(item)
 
@@ -286,40 +314,37 @@ cdef class BloomFilter:
             cbloomfilter.bloomfilter_Destroy(self._bf)
             self._bf = NULL
 
-    def __ior__(self, BloomFilter other):
+    def union(self, BloomFilter other):
         self._assert_open()
+        self._assert_writable()
+        other._assert_open()
         self._assert_comparable(other)
         cbloomfilter.mbarray_Or(self._bf.array, other._bf.array)
         self._bf.count_correct = 0
         return self
 
-    def union(self, BloomFilter other):
+    def __ior__(self, BloomFilter other):
+        return self.union(other)
+
+    def intersection(self, BloomFilter other):
         self._assert_open()
+        self._assert_writable()
         other._assert_open()
         self._assert_comparable(other)
-        cbloomfilter.mbarray_Or(self._bf.array, other._bf.array)
+        cbloomfilter.mbarray_And(self._bf.array, other._bf.array)
         self._bf.count_correct = 0
         return self
 
     def __iand__(self, BloomFilter other):
-        self._assert_open()
-        other._assert_open()
-        self._assert_comparable(other)
-        cbloomfilter.mbarray_And(self._bf.array, other._bf.array)
-        self._bf.count_correct = 0
-        return self
-
-    def intersection(self, BloomFilter other):
-        self._assert_open()
-        other._assert_open()
-        self._assert_comparable(other)
-        cbloomfilter.mbarray_And(self._bf.array, other._bf.array)
-        self._bf.count_correct = 0
-        return self
+        return self.intersection(other)
 
     def _assert_open(self):
         if self._closed != 0:
             raise ValueError("I/O operation on closed file")
+
+    def _assert_writable(self):
+        if self.read_only:
+            raise ValueError("Write operation on read-only file")
 
     def _assert_comparable(self, BloomFilter other):
         error = ValueError("The two %s objects are not the same type (hint, "
@@ -339,13 +364,13 @@ cdef class BloomFilter:
         return result
 
     @classmethod
-    def from_base64(cls, filename, string, perm=0755):
-        bfile_fp = os.open(filename, construct_mode('w+'), perm)
+    def from_base64(cls, filename, string, mode="rw+", perm=0755):
+        bfile_fp = os.open(filename, _construct_mode('w+'), perm)
         os.write(bfile_fp, zlib.decompress(base64.b64decode(zlib.decompress(
             base64.b64decode(string)))))
         os.close(bfile_fp)
-        return cls.open(filename)
+        return cls.open(filename, mode)
 
     @classmethod
-    def open(cls, filename):
-        return cls(cls.ReadFile, 0.1, filename, 0)
+    def open(cls, filename, mode="rw+"):
+        return cls(cls.ReadFile, 0.1, filename=filename, mode=mode, perm=0)

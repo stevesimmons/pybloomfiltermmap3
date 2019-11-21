@@ -129,6 +129,43 @@ class SimpleTestCase(unittest.TestCase):
         self._check_filter_contents(bf)
 
     @with_test_file
+    def test_readonly(self, filename):
+        bf = pybloomfilter.BloomFilter(self.FILTER_SIZE,
+                                       self.FILTER_ERROR_RATE,
+                                       filename)
+        self._populate_filter(bf)
+        self._check_filter_contents(bf)
+        self.assertEqual(bf.read_only, False)
+        bf.sync()
+
+        bfro = pybloomfilter.BloomFilter.open(filename, mode="r")
+        self._check_filter_contents(bfro)
+        self.assertEqual(bfro.read_only, True)
+
+    def test_readonly_cannot_write(self):
+        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertRaises(ValueError, bfro.add, "test")
+        self.assertRaises(ValueError, bfro.update, ["test"])
+        self.assertRaises(ValueError, bfro.sync)
+        self.assertRaises(ValueError, bfro.clear_all)
+
+    def test_readonly_cannot_do_set_operations(self):
+        bf_mem = pybloomfilter.BloomFilter(self.FILTER_SIZE,
+                                           self.FILTER_ERROR_RATE)
+
+        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertRaises(ValueError, bfro.union, bf_mem)
+
+        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertRaises(ValueError, bfro.intersection, bf_mem)
+
+        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertRaises(ValueError, bfro.__ior__, bf_mem)
+
+        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertRaises(ValueError, bfro.__iand__, bf_mem)
+
+    @with_test_file
     def test_copy(self, filename):
         self._populate_filter(self.bf)
         self.bf.sync()
@@ -190,7 +227,6 @@ class SimpleTestCase(unittest.TestCase):
             bf.add(elem)
             self.assertEqual(elem in bf, True)
 
-    #@unittest.skip("unfortunately large files cannot be tested on Travis")
     @with_test_file
     def _test_large_file(self, filename):
         bf = pybloomfilter.BloomFilter(400000000, 0.01, filename)
