@@ -13,30 +13,30 @@ is a member of a set. The `wikipedia page <http://en.wikipedia.org/wiki/Bloom_fi
 has further information on their nature. This module implements a Bloom filter
 in python that's fast and uses mmap files for better scalability.
 
-Here's a quick example::
+Here's a quick example:
 
-.. code:: python
+.. code-block:: python
 
-    from pybloomfilter import BloomFilter
+    >>> from pybloomfilter import BloomFilter
 
-    bf = BloomFilter(10000000, 0.01, 'filter.bloom')
+    >>> bf = BloomFilter(10000000, 0.01, 'filter.bloom')
+    >>> with open("/usr/share/dict/words") as f:
+    >>>     for word in f:
+    >>>         bf.add(word.rstrip())
 
-    with open("/usr/share/dict/words") as f:
-        for word in f:
-            bf.add(word.rstrip())
-
-    print 'apple' in bf
-    #outputs True
+    >>> print 'apple' in bf
+    True
 
 That wasn't so hard, was it? Now, there are a lot of other things
 we can do. For instance, let's say we want to create a similar
-filter with just a few pieces of fruit::
+filter with just a few pieces of fruit:
 
 .. code:: python
 
-    fruitbf = bf.copy_template("fruit.bloom")
-    fruitbf.update(("apple", "banana", "orange", "pear"))
-    print fruitbf.to_base64()
+    >>> fruitbf = bf.copy_template("fruit.bloom")
+    >>> fruitbf.update(("apple", "banana", "orange", "pear"))
+
+    >>> print(fruitbf.to_base64())
     "eJzt2k13ojAUBuA9f8WFyofF5TWChlTHaPzqrlqFCtj6gQi/frqZM2N7aq3Gis59d2ye85KTRbhk"
     "0lyu1NRmsQrgRda0I+wZCfXIaxuWv+jqDxA8vdaf21HIOSn1u6LRE0VL9Z/qghfbBmxZoHsqM3k8"
     "N5XyPAxH2p22TJJoqwU9Q0y0dNDYrOHBIa3BwuznapG+KZZq69JUG0zu1tqI5weJKdpGq7PNJ6tB"
@@ -76,7 +76,7 @@ Install
 Please have `Cython` installed. Please note that this version is for Python 3.
 In case you are using Python 2, please see https://github.com/axiak/pybloomfiltermmap.
 
-To install:
+To install::
 
     $ pip install cython
     $ pip install pybloomfiltermmap3
