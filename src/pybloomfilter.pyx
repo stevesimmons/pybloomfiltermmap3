@@ -100,17 +100,17 @@ cdef class BloomFilter:
             # when we choose to round down when the calculated optimal number of
             # hashes is fractional)."
 
-            if not (error_rate > 0.0 and error_rate < 1.0):
+            if not (0 < error_rate < 1):
                 raise ValueError("error_rate allowable range (0.0, 1.0) %f" % (error_rate,))
 
             if hash_seeds:
                 num_hashes = len(hash_seeds)
             else:
-                num_hashes = max(int(math.floor(math.log(1.0 / error_rate, 2.0))),1)
+                num_hashes = max(math.floor(math.log2(1 / error_rate)), 1)
 
-            bits_per_hash = int(math.ceil(
+            bits_per_hash = math.ceil(
                     capacity * abs(math.log(error_rate)) /
-                    (num_hashes * (math.log(2) ** 2))))
+                    (num_hashes * (math.log(2) ** 2)))
 
             # Minimum bit vector of 128 bits
             num_bits = max(num_hashes * bits_per_hash,128)
