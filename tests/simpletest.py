@@ -236,6 +236,14 @@ class SimpleTestCase(unittest.TestCase):
         bf_seeds = bf.hash_seeds.tolist()
         self.assertEqual(cust_seeds, bf_seeds)
 
+    def test_create_with_hash_seeds_invalid(self):
+        cust_seeds = ["ABC", -123, "123456", getrandbits(33)]
+        self.assertRaises(ValueError,
+                          pybloomfilter.BloomFilter,
+                          self.FILTER_SIZE,
+                          self.FILTER_ERROR_RATE,
+                          hash_seeds=cust_seeds)
+
     def test_create_with_hash_seeds_and_compare(self):
         test_data = "test"
         bf1 = pybloomfilter.BloomFilter(self.FILTER_SIZE,

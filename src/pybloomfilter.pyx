@@ -103,10 +103,21 @@ cdef class BloomFilter:
             if not (0 < error_rate < 1):
                 raise ValueError("error_rate allowable range (0.0, 1.0) %f" % (error_rate,))
 
+            array_seeds = array.array('I')
+
             if hash_seeds:
+                for seed in hash_seeds:
+                    if not isinstance(seed, int) or seed < 0 or seed.bit_length() > 32:
+                        raise ValueError("invalid hash seed '%s', must be >= 0 "
+                                         "and up to 32 bits in size" % seed)
                 num_hashes = len(hash_seeds)
+                array_seeds.extend(hash_seeds)
             else:
                 num_hashes = max(math.floor(math.log2(1 / error_rate)), 1)
+                array_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
+
+            test = array_seeds.tobytes()
+            seeds = test
 
             bits_per_hash = math.ceil(
                     capacity * abs(math.log(error_rate)) /
@@ -119,14 +130,6 @@ cdef class BloomFilter:
             #     num_hashes, num_bits, capacity,
             #     (1.0 - math.exp(- float(num_hashes) * float(capacity) / num_bits))
             #     ** num_hashes))
-
-            array_seeds = array.array('I')
-            if hash_seeds:
-                array_seeds.extend(hash_seeds)
-            else:
-                array_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
-            test = array_seeds.tobytes()
-            seeds = test
 
             # If a filename is provided, we should make a mmap-file
             # backed bloom filter. Otherwise, it will be malloc
