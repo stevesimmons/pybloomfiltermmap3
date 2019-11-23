@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 VERSION = (0, 4, 19)
 AUTHOR = "Michael Axiak"
 
@@ -45,7 +47,7 @@ cdef class BloomFilter:
     cdef int _in_memory
     cdef public ReadFile
 
-    def __cinit__(self, capacity, error_rate, filename=None, perm=0755):
+    def __cinit__(self, capacity, error_rate, filename=None, perm=0755, hash_seeds=None):
         cdef char * seeds
         cdef long long num_bits
         self._closed = 0
@@ -98,24 +100,36 @@ cdef class BloomFilter:
             # when we choose to round down when the calculated optimal number of
             # hashes is fractional)."
 
-            assert(error_rate > 0.0 and error_rate < 1.0), "error_rate allowable range (0.0,1.0) %f" % (error_rate,)
-            num_hashes = max(int(math.floor(math.log(1.0 / error_rate, 2.0))),1)
-            bits_per_hash = int(math.ceil(
-                    capacity * abs(math.log(error_rate)) /
-                    (num_hashes * (math.log(2) ** 2))))
+            if not (0 < error_rate < 1):
+                raise ValueError("error_rate allowable range (0.0, 1.0) %f" % (error_rate,))
 
-            # mininum bitvector of 128 bits
+            array_seeds = array.array('I')
+
+            if hash_seeds:
+                for seed in hash_seeds:
+                    if not isinstance(seed, int) or seed < 0 or seed.bit_length() > 32:
+                        raise ValueError("invalid hash seed '%s', must be >= 0 "
+                                         "and up to 32 bits in size" % seed)
+                num_hashes = len(hash_seeds)
+                array_seeds.extend(hash_seeds)
+            else:
+                num_hashes = max(math.floor(math.log2(1 / error_rate)), 1)
+                array_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
+
+            test = array_seeds.tobytes()
+            seeds = test
+
+            bits_per_hash = math.ceil(
+                    capacity * abs(math.log(error_rate)) /
+                    (num_hashes * (math.log(2) ** 2)))
+
+            # Minimum bit vector of 128 bits
             num_bits = max(num_hashes * bits_per_hash,128)
 
-            #print "k = %d  m = %d  n = %d   p ~= %.8f" % (
-            #    num_hashes, num_bits, capacity,
-            #    (1.0 - math.exp(- float(num_hashes) * float(capacity) / num_bits))
-            #    ** num_hashes)
-
-            hash_seeds = array.array('I')
-            hash_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
-            test = _array_tobytes(hash_seeds)
-            seeds = test
+            # print("k = %d  m = %d  n = %d   p ~= %.8f" % (
+            #     num_hashes, num_bits, capacity,
+            #     (1.0 - math.exp(- float(num_hashes) * float(capacity) / num_bits))
+            #     ** num_hashes))
 
             # If a filename is provided, we should make a mmap-file
             # backed bloom filter. Otherwise, it will be malloc
@@ -149,11 +163,11 @@ cdef class BloomFilter:
     property hash_seeds:
         def __get__(self):
             self._assert_open()
-            result = array.array('I')
-            _array_frombytes(
-                result, (<char *>self._bf.hash_seeds)[:4 * self.num_hashes]
+            seeds = array.array('I')
+            seeds.frombytes(
+               (<char *>self._bf.hash_seeds)[:4 * self.num_hashes]
             )
-            return result
+            return seeds
 
     property capacity:
         def __get__(self):
@@ -335,17 +349,3 @@ cdef class BloomFilter:
     @classmethod
     def open(cls, filename):
         return cls(cls.ReadFile, 0.1, filename, 0)
-
-
-def _array_tobytes(ar):
-    if sys.version_info >= (3, 2):
-        return ar.tobytes()
-    else:
-        return ar.tostring()
-
-
-def _array_frombytes(ar, s):
-    if sys.version_info >= (3, 2):
-        return ar.frombytes(s)
-    else:
-        return ar.fromstring(s)
