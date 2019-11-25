@@ -66,6 +66,7 @@ MBArray * mbarray_Create_Mmap(BTYPE num_bits, const char * file, const char * he
     MBArray * array = (MBArray *)malloc(sizeof(MBArray));
     uint64_t filesize;
     int32_t fheaderlen;
+    int mmap_flags = PROT_READ;
 
     if (!array || errno) {
         return NULL;
@@ -148,9 +149,11 @@ MBArray * mbarray_Create_Mmap(BTYPE num_bits, const char * file, const char * he
     }
 
     errno = 0;
+    // Add PROT_WRITE if we have write permissions
+    mmap_flags |= (oflag & O_RDWR) ? PROT_WRITE : 0;
     array->vector = (DTYPE *)mmap(NULL,
                                   _mmap_size(array),
-                                  PROT_READ | PROT_WRITE,
+                                  mmap_flags,
                                   MAP_SHARED, 
                                   array->fd,
                                   0);

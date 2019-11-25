@@ -10,12 +10,12 @@ BloomFilter Class Reference
 .. moduleauthor:: Michael Axiak <mike@axiak.net>
 
 
-.. class:: BloomFilter(capacity : int, error_rate : float, [filename=None : string], [perm=0755])
+.. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [mode = "rw+"], [perm=0755])
 
    Create a new BloomFilter object with a given capacity and error_rate.
    **Note that we do not check capacity.** This is important, because
-   I want to be able to support logical OR and AND (see below).
-   The capacity and error_rate then together serve as a contract---you add
+   we want to be able to support logical OR and AND (see below).
+   The capacity and error_rate then together serve as a contract --- you add
    less than capacity items, and the Bloom Filter will have an error rate
    less than error_rate.
 
@@ -24,7 +24,7 @@ Class Methods
 
 .. classmethod:: BloomFilter.open(filename)
 
-   Return a BloomFilter object using an already-existing Bloomfilter file.
+   Return a BloomFilter object using an already existing BloomFilter file.
 
 .. classmethod:: BloomFilter.from_base64(filename, string, [perm=0755])
 
@@ -35,11 +35,11 @@ Class Methods
    Example::
 
     >>> bf = BloomFilter.from_base64("/tmp/mike.bf", 
-         "eJwFwcuWgiAAANC9v+JCx7By0QKt0GHEbKSknflAQ9QmTyRfP/fW5E9XTRSX"
-         "qcLlqGNXphAqcfVH\nRoNv0n4JlTpIvAP0e1+RyXX6I637ggA+VPZnTYR1A4"
-         "Um5s9geYaZZLiT208JIiG3iwhf3Fwlzb3Y\n5NRL4uNQS6/d9OvTDJbnZMnR"
-         "zcrplOX5kmsVIkQziM+vw4hCDQ3OkN9m3WVfPWzGfaTeRftMCLws\nPnzEzs"
-         "gjAW60xZTBbj/bOAgYbK50PqjdzvgHZ6FHZw==\n")
+            "eJwFwcuWgiAAANC9v+JCx7By0QKt0GHEbKSknflAQ9QmTyRfP/fW5E9XTRSX"
+            "qcLlqGNXphAqcfVH\nRoNv0n4JlTpIvAP0e1+RyXX6I637ggA+VPZnTYR1A4"
+            "Um5s9geYaZZLiT208JIiG3iwhf3Fwlzb3Y\n5NRL4uNQS6/d9OvTDJbnZMnR"
+            "zcrplOX5kmsVIkQziM+vw4hCDQ3OkN9m3WVfPWzGfaTeRftMCLws\nPnzEzs"
+            "gjAW60xZTBbj/bOAgYbK50PqjdzvgHZ6FHZw==\n")
     >>> "MIKE" in bf
     True
 
@@ -60,15 +60,20 @@ Instance Attributes
 
 .. attribute:: BloomFilter.name
 
-    The file name (compatible with file objects)
+    The file name (compatible with file objects).
 
 .. attribute:: BloomFilter.num_bits
 
-    The number of bits used in the filter as buckets
+    The number of bits used in the filter as buckets.
 
 .. attribute:: BloomFilter.num_hashes
 
-    The number of hash functions used when computing
+    The number of hash functions used when computing.
+
+.. attribute:: BloomFilter.read_only
+
+    Boolean, indicating if the opened BloomFilter is read-only.
+    Always ``False`` for an in-memory BloomFilter.
 
 
 Instance Methods
@@ -78,8 +83,8 @@ Instance Methods
 
    Add the item to the bloom filter.
 
-   :param item: Hashable object
-   :rtype: Boolean (True if item already in the filter)
+   :param item: hashable object
+   :rtype: boolean (``True`` if item already in the filter)
 
 .. method:: BloomFilter.clear_all()
 
@@ -121,7 +126,7 @@ Instance Methods
    this may not be too useful. I find it useful for debugging so I can
    copy filters from one terminal to another in their entirety.
 
-   :rtype: Base64 encoded string representing filter
+   :rtype: base64 encoded string representing filter
 
 .. method:: BloomFilter.update(iterable)
 
@@ -136,7 +141,7 @@ Instance Methods
    
    The result will occur **in place**. That is, calling::
 
-   bf.union(bf2)
+      bf.union(bf2)
 
    is a way to add all the elements of bf2 to bf.
 
@@ -147,7 +152,7 @@ Instance Methods
 
    The same as union() above except it uses a set AND instead of a
    set OR.
-   
+
    *N.B.: Calling this function will render future calls to len()
    invalid.*
 
@@ -182,11 +187,11 @@ Magic Methods
 
 .. method:: BloomFilter.__ior__(filter) -> BloomFilter
 
-   See union(filter)
+   See :meth:`BloomFilter.union`.
 
 .. method:: BloomFilter.__iand__(filter) -> BloomFilter
 
-   See intersection(filter)
+   See :meth:`BloomFilter.intersection`.
 
 Exceptions
 --------------
@@ -195,4 +200,3 @@ Exceptions
 
    The exception that is raised if len() is called on a BloomFilter
    object after |=, &=, intersection(), or union() is used.
-
