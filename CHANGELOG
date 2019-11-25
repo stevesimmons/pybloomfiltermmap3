@@ -1,3 +1,9 @@
+0.5.0 2019-11-25)
+ - Add support for Read-Only `bloomfilter` files (@mizvyt)               [FEATURE]
+ - Installation errors due to missing Cython deps. should now be fixed.
+   (@mizvyt)                                                             [BUG]
+ - Drop `Python <= 3.4` (@mizvyt)                                        [FEATURE]
+
 0.4.19 2019-10-11)
  - Ensure that filename is encoded in `copy_template` (@gonzalezzfelipe) [BUG]
 

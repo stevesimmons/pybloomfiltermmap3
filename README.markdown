@@ -50,6 +50,21 @@ To install:
 
 and you should be set.
 
+## History and Future
+
+`pybloomfiltermmap` is an excellent `bloomfiler` implementation for `Python 2` by @axiak and contributors.
+I (@prashnts) made tiny changes to add support for `Python 3` sometime in 2016 as `pybloomfiltermmap3` on
+`PyPI`. Since then through the help of contributors there has been incremental improvements and bugfixes
+while maintaining the API in `v0.4.x`. Since Nov. 2019, @mizvyt joined in this project and has made tons
+of fixes, and added support for Read-Only bloomfilters (check #12).
+
+We're moving the new changes to `v0.5.x` and onwards. The goal would be to reach stability as well as add
+few more APIs to expand upon the use cases. While this won't be guaranteed to not remove or change the
+interface, the transition from `v0.4.x` should be quick one liners. Please open an issue if we broke your
+build!
+
+Suggestions, bug reports, and/or patches are welcome!
+
 
 ## License
 
