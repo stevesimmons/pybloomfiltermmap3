@@ -3,8 +3,8 @@ import sys
 
 from setuptools import setup, Extension
 
-if sys.version_info[0] < 3:
-    raise SystemError("This package is for Python version 3 and above.")
+if sys.version_info < (3, 5):
+    raise SystemError("This package is for Python 3.5 and above.")
 
 here = os.path.dirname(__file__)
 
@@ -37,7 +37,7 @@ else:
     except ModuleNotFoundError:
         print(
             "Cython module not found. Hint: to build pybloomfilter using the distributed "
-            "source code, run 'python setup.py install --no-cython'."    
+            "source code, run 'python setup.py install --no-cython'."
         )
         sys.exit(1)
 
@@ -58,6 +58,7 @@ setup(
     license="MIT License",
     test_suite="tests.test_all",
     ext_modules=ext_modules,
+    python_requires=">=3.5, <4",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
