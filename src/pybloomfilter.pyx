@@ -179,51 +179,49 @@ cdef class BloomFilter:
         cbloomfilter.bloomfilter_Destroy(self._bf)
         self._bf = NULL
 
-    property hash_seeds:
-        def __get__(self):
-            self._assert_open()
-            seeds = array.array('I')
-            seeds.frombytes(
-               (<char *>self._bf.hash_seeds)[:4 * self.num_hashes]
-            )
-            return seeds
+    @property
+    def hash_seeds(self):
+        self._assert_open()
+        seeds = array.array('I')
+        seeds.frombytes(
+            (<char *>self._bf.hash_seeds)[:4 * self.num_hashes]
+        )
+        return seeds
 
-    property capacity:
-        def __get__(self):
-            self._assert_open()
-            return self._bf.max_num_elem
+    @property
+    def capacity(self):
+        self._assert_open()
+        return self._bf.max_num_elem
 
-    property error_rate:
-        def __get__(self):
-            self._assert_open()
-            return self._bf.error_rate
+    @property
+    def error_rate(self):
+        self._assert_open()
+        return self._bf.error_rate
 
-    property num_hashes:
-        def __get__(self):
-            self._assert_open()
-            return self._bf.num_hashes
+    @property
+    def num_hashes(self):
+        self._assert_open()
+        return self._bf.num_hashes
 
-    property num_bits:
-        def __get__(self):
-            self._assert_open()
-            return self._bf.array.bits
+    @property
+    def num_bits(self):
+        self._assert_open()
+        return self._bf.array.bits
 
-    property name:
-        def __get__(self):
-            self._assert_open()
-            if self._in_memory:
-                raise NotImplementedError('Cannot access .name on an '
-                                          'in-memory %s' %
-                                          self.__class__.__name__)
+    @property
+    def name(self):
+        self._assert_open()
+        if self._in_memory:
+            raise NotImplementedError('Cannot access .name on an in-memory %s'
+                                        % self.__class__.__name__)
+        if self._bf.array.filename is NULL:
+            return None
+        return self._bf.array.filename
 
-            if self._bf.array.filename is NULL:
-                return None
-            return self._bf.array.filename
-
-    property read_only:
-        def __get__(self):
-            self._assert_open()
-            return not self._in_memory and not self._oflags & os.O_RDWR
+    @property
+    def read_only(self):
+        self._assert_open()
+        return not self._in_memory and not self._oflags & os.O_RDWR
 
     def fileno(self):
         self._assert_open()
