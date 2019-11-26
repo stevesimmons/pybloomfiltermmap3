@@ -8,7 +8,7 @@ BloomFilter Class Reference
 
 .. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [mode="rw+"], [perm=0755], [hash_seeds = None: list])
 
-    Create a new BloomFilter object with a given capacity and error_rate.
+    Creates a new BloomFilter object with a given capacity and error_rate.
 
     :param int capacity: the maximum number of elements this filter
         can contain while keeping the false positive rate under ``error_rate``.
@@ -40,7 +40,7 @@ Class Methods
 
 .. classmethod:: BloomFilter.open(filename, [mode="rw+"])
 
-    Create a :class:`BloomFilter` object from an existing file.
+    Creates a :class:`BloomFilter` object from an existing file.
 
     :param str filename: existing filename
     :param str mode: file access mode
@@ -48,7 +48,7 @@ Class Methods
 
 .. classmethod:: BloomFilter.from_base64(filename, string, [mode="rw+"] [perm=0755])
 
-    Unpack the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
+    Unpacks the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
     into the supplied filename and return a :class:`BloomFilter` object using that
     file.
 
@@ -110,7 +110,7 @@ Instance Methods
 
 .. method:: BloomFilter.add(item)
 
-    Add the item to the Bloom filter.
+    Adds an item to the Bloom filter.
     Returns a boolean indicating whether this item was present
     in the Bloom filter prior to adding (see :meth:`BloomFilter.__contains__`).
 
@@ -119,11 +119,11 @@ Instance Methods
 
 .. method:: Bloomilter.clear_all()
 
-    Remove all elements from the Bloom filter at once.
+    Removes all elements from the Bloom filter at once.
 
 .. method:: BloomFilter.copy(filename)
 
-    Copy the current :class:`BloomFilter` object to another object
+    Copies the current :class:`BloomFilter` object to another object
     with a new filename.
 
     :param str filename: new filename
@@ -170,7 +170,7 @@ Instance Methods
 
 .. method:: BloomFilter.union(filter)
 
-    Perform a set OR with another comparable filter. You can (only) construct
+    Performs a set OR with another comparable filter. You can (only) construct
     comparable filters with :meth:`BloomFilter.copy_template` above. In the above
     example, Bloom filter ``pear`` will have both "granny_smith" and "conference".
 
@@ -197,6 +197,13 @@ Instance Methods
     :param BloomFilter other: filter to perform the intersection with
     :rtype: :class:`BloomFilter`
 
+.. method:: BloomFilter.close()
+
+    Closes the currently opened :class:`BloomFilter` file descriptor.
+    Following accesses to this instance will raise a :class:`ValueError`.
+
+    *Caution*: this will delete an in-memory filter irrecoverably!
+
 
 Magic Methods
 -------------
@@ -216,6 +223,9 @@ Magic Methods
         >>> len(bf)
         2
 
+    Raises :class:`IndeterminateCountError` if a the Bloom filter
+    was a result of a set operation. Example::
+
         >>> bf2 = bf.copy_template('/tmp/new.bloom')
         >>> bf2 |= bf
         >>> len(bf2)
@@ -228,7 +238,7 @@ Magic Methods
 
 .. method:: BloomFilter.__contains__(item)
 
-    Check to see if item is contained in the filter, with
+    Checks to see if item is contained in the filter, with
     an acceptable false positive rate of :attr:`BloomFilter.error_rate` (see above).
 
     :param item: hashable object

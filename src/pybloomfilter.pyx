@@ -51,9 +51,34 @@ class IndeterminateCountError(ValueError):
 
 cdef class BloomFilter:
     """
-    The BloomFilter class implements a bloom filter that uses mmap'd files.
-    For more information on what a bloom filter is, please read the Wikipedia article about it.
+    Creates a new BloomFilter object with a given capacity and error_rate.
+
+    :param int capacity: the maximum number of elements this filter
+        can contain while keeping the false positive rate under ``error_rate``.
+    :param float error_rate: false positive probability that will hold
+        given that ``capacity`` is not exceeded.
+    :param str filename: filename to use to create the new Bloom filter.
+        If a filename is not provided, an in-memory Bloom filter will be created.
+    :param str mode: (*not applicable for an in-memory Bloom filter*)
+        file access mode.
+    :param int perm: (*not applicable for an in-memory Bloom filter*)
+        file access permission flags.
+    :param list hash_seeds: optionally specify hash seeds to use for the
+        hashing algorithm. Each hash seed must not exceed 32 bits. The number
+        of hash seeds will determine the number of hashes performed.
+
+    **Note that we do not check capacity.** This is important, because
+    we want to be able to support logical OR and AND (see :meth:`BloomFilter.union`
+    and :meth:`BloomFilter.intersection`). The capacity and error_rate then together
+    serve as a contract -- you add less than capacity items, and the Bloom filter
+    will have an error rate less than error_rate.
+
+    Raises :class:`OSError` if the supplied filename does not exist or if user
+    lacks permission to access such file. Raises :class:`ValueError` if the supplied
+    ``error_rate`` is invalid, ``hash_seeds`` does not contain valid hash seeds, or
+    if the file cannot be read.
     """
+
     cdef cbloomfilter.BloomFilter * _bf
     cdef int _closed
     cdef int _in_memory
@@ -181,6 +206,7 @@ cdef class BloomFilter:
 
     @property
     def hash_seeds(self):
+        """Integer seeds used for the random hashing. Returns a list of integers."""
         self._assert_open()
         seeds = array.array('I')
         seeds.frombytes(
@@ -190,26 +216,36 @@ cdef class BloomFilter:
 
     @property
     def capacity(self):
+        """The maximum number of elements this filter can contain while keeping
+        the false positive rate under :attr:`BloomFilter.error_rate`. Returns an integer.
+        """
         self._assert_open()
         return self._bf.max_num_elem
 
     @property
     def error_rate(self):
+        """The acceptable probability of false positives. Returns a float."""
         self._assert_open()
         return self._bf.error_rate
 
     @property
     def num_hashes(self):
+        """Number of hash functions used when computing."""
         self._assert_open()
         return self._bf.num_hashes
 
     @property
     def num_bits(self):
+        """Number of bits used in the filter as buckets."""
         self._assert_open()
         return self._bf.array.bits
 
     @property
     def name(self):
+        """File name (compatible with file objects). Does not apply to an in-memory
+        :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+        Returns an encoded string.
+        """
         self._assert_open()
         if self._in_memory:
             raise NotImplementedError('Cannot access .name on an in-memory %s'
@@ -220,10 +256,14 @@ cdef class BloomFilter:
 
     @property
     def read_only(self):
+        """Indicates if the opened :class:`BloomFilter` is read-only.
+        Always ``False`` for an in-memory :class:`BloomFilter`.
+        """
         self._assert_open()
         return not self._in_memory and not self._oflags & os.O_RDWR
 
     def fileno(self):
+        """Bloom filter file descriptor."""
         self._assert_open()
         return self._bf.array.fd
 
@@ -238,16 +278,27 @@ cdef class BloomFilter:
         return self.__repr__()
 
     def sync(self):
+        """Forces a ``sync()`` call on the underlying mmap file object. Use this if
+        you are about to copy the file and you want to be sure you got
+        everything correctly.
+        """
         self._assert_open()
         self._assert_writable()
         cbloomfilter.mbarray_Sync(self._bf.array)
 
     def clear_all(self):
+        """Removes all elements from the Bloom filter at once."""
         self._assert_open()
         self._assert_writable()
         cbloomfilter.mbarray_ClearAll(self._bf.array)
 
     def __contains__(self, item_):
+        """Checks to see if item is contained in the filter, with
+        an acceptable false positive rate of :attr:`BloomFilter.error_rate`.
+
+        :param item: hashable object
+        :rtype: bool
+        """
         self._assert_open()
         cdef cbloomfilter.Key key
         if isinstance(item_, str):
@@ -261,6 +312,14 @@ cdef class BloomFilter:
         return cbloomfilter.bloomfilter_Test(self._bf, &key) == 1
 
     def copy_template(self, filename, perm=0755):
+        """Creates a new :class:`BloomFilter` object with the exact same parameters.
+        Once this is performed, the two filters are comparable, so
+        you can perform set operations using logical operators.
+
+        :param str filename: new filename
+        :param int perm: file access permission flags
+        :rtype: :class:`BloomFilter`
+        """
         self._assert_open()
         cdef BloomFilter copy = BloomFilter(0, 0, NoConstruct)
         if os.path.exists(filename):
@@ -269,6 +328,12 @@ cdef class BloomFilter:
         return copy
 
     def copy(self, filename):
+        """Copies the current :class:`BloomFilter` object to another object
+        with a new filename.
+
+        :param str filename: new filename
+        :rtype: :class:`BloomFilter`
+        """
         self._assert_open()
         if self._in_memory:
             raise NotImplementedError('Cannot call .copy on an in-memory %s' %
@@ -277,6 +342,13 @@ cdef class BloomFilter:
         return self.__class__(self.ReadFile, 0.1, filename, perm=0)
 
     def add(self, item_):
+        """Adds an item to the Bloom filter. Returns a boolean indicating whether
+        this item was present in the Bloom filter prior to adding
+        (see :meth:`BloomFilter.__contains__`).
+
+        :param item: hashable object
+        :rtype: bool
+        """
         self._assert_open()
         self._assert_writable()
         cdef cbloomfilter.Key key
@@ -295,10 +367,21 @@ cdef class BloomFilter:
         return bool(result)
 
     def update(self, iterable):
+        """Calls :meth:`BloomFilter.add` on all items in the iterable."""
         for item in iterable:
             self.add(item)
 
     def __len__(self):
+        """Returns the number of distinct elements that have been
+        added to the :class:`BloomFilter` object, subject to the error
+        given in :attr:`BloomFilter.error_rate`.
+
+        Raises :class:`IndeterminateCountError` if a the Bloom filter
+        was a result of a set operation.
+
+        :param item: hashable object
+        :rtype: int
+        """
         self._assert_open()
         if not self._bf.count_correct:
             raise IndeterminateCountError("Length of %s object is unavailable "
@@ -307,12 +390,32 @@ cdef class BloomFilter:
         return self._bf.elem_count
 
     def close(self):
+        """Closes the currently opened :class:`BloomFilter` file descriptor.
+        Following accesses to this instance will raise a :class:`ValueError`.
+
+        *Caution*: this will delete an in-memory filter irrecoverably!
+        """
         if self._closed == 0:
             self._closed = 1
             cbloomfilter.bloomfilter_Destroy(self._bf)
             self._bf = NULL
 
     def union(self, BloomFilter other):
+        """Performs a set OR with another comparable filter. You can (only) construct
+        comparable filters with :meth:`BloomFilter.copy_template` above.
+
+        The computation will occur *in place*. That is, calling::
+
+            >>> bf.union(bf2)
+
+        is a way of adding *all* the elements of ``bf2`` to ``bf``.
+
+        *NB: Calling this function will render future calls to len()
+        invalid.*
+
+        :param BloomFilter other: filter to perform the union with
+        :rtype: :class:`BloomFilter`
+        """
         self._assert_open()
         self._assert_writable()
         other._assert_open()
@@ -322,9 +425,19 @@ cdef class BloomFilter:
         return self
 
     def __ior__(self, BloomFilter other):
+        """See :meth:`BloomFilter.union`."""
         return self.union(other)
 
     def intersection(self, BloomFilter other):
+        """The same as :meth:`BloomFilter.union` above except it uses
+        a set AND instead of a set OR.
+
+        *NB: Calling this function will render future calls to len()
+        invalid.*
+
+        :param BloomFilter other: filter to perform the intersection with
+        :rtype: :class:`BloomFilter`
+        """
         self._assert_open()
         self._assert_writable()
         other._assert_open()
@@ -334,6 +447,7 @@ cdef class BloomFilter:
         return self
 
     def __iand__(self, BloomFilter other):
+        """See :meth:`BloomFilter.intersection`."""
         return self.intersection(other)
 
     def _assert_open(self):
@@ -354,6 +468,13 @@ cdef class BloomFilter:
         return
 
     def to_base64(self):
+        """Creates a compressed, base64 encoded version of the :class:`BloomFilter`.
+        Since the Bloom filter is efficiently in binary on the file system,
+        this may not be too useful. I find it useful for debugging so I can
+        copy filters from one terminal to another in their entirety.
+
+        :rtype: base64 encoded string representing filter
+        """
         self._assert_open()
         bfile = open(self.name, 'rb')
         fl_content = bfile.read()
@@ -363,6 +484,15 @@ cdef class BloomFilter:
 
     @classmethod
     def from_base64(cls, filename, string, mode="rw+", perm=0755):
+        """Unpacks the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
+        into the supplied filename and return a :class:`BloomFilter` object using that
+        file.
+
+        :param str filename: new filename
+        :param str mode: file access mode
+        :param int perm: file access permission flags
+        :rtype: :class:`BloomFilter`
+        """
         bfile_fp = os.open(filename, _construct_mode('w+'), perm)
         os.write(bfile_fp, zlib.decompress(base64.b64decode(zlib.decompress(
             base64.b64decode(string)))))
@@ -371,4 +501,10 @@ cdef class BloomFilter:
 
     @classmethod
     def open(cls, filename, mode="rw+"):
+        """Creates a :class:`BloomFilter` object from an existing file.
+
+        :param str filename: existing filename
+        :param str mode: file access mode
+        :rtype: :class:`BloomFilter`
+        """
         return cls(cls.ReadFile, 0.1, filename=filename, mode=mode, perm=0)
