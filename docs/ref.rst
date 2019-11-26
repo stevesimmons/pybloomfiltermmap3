@@ -1,202 +1,252 @@
+===========================
 BloomFilter Class Reference
-============================
-
-.. toctree::
-   :maxdepth: 2
+===========================
 
 .. module:: pybloomfilter
    :platform: Unix, Windows
-   :synopsis: A fast BloomFilter for Python
-.. moduleauthor:: Michael Axiak <mike@axiak.net>
+   :synopsis: a fast implementation of Bloom filter for Python
 
+.. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [mode="rw+"], [perm=0755], [hash_seeds = None: list])
 
-.. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [mode = "rw+"], [perm=0755])
+    Create a new BloomFilter object with a given capacity and error_rate.
 
-   Create a new BloomFilter object with a given capacity and error_rate.
-   **Note that we do not check capacity.** This is important, because
-   we want to be able to support logical OR and AND (see below).
-   The capacity and error_rate then together serve as a contract --- you add
-   less than capacity items, and the Bloom Filter will have an error rate
-   less than error_rate.
+    :param int capacity: the maximum number of elements this filter
+        can contain while keeping the false positive rate under ``error_rate``.
+    :param float error_rate: false positive probability that will hold
+        given that ``capacity`` is not exceeded.
+    :param str filename: filename to use to create the new Bloom filter.
+        If a filename is not provided, an in-memory Bloom filter will be created.
+    :param str mode: (*not applicable for an in-memory Bloom filter*)
+        file access mode.
+    :param int perm: (*not applicable for an in-memory Bloom filter*)
+        file access permission flags.
+    :param list hash_seeds: optionally specify hash seeds to use for the
+        hashing algorithm. Each hash seed must not exceed 32 bits. The number
+        of hash seeds will determine the number of hashes performed.
+
+    **Note that we do not check capacity.** This is important, because
+    we want to be able to support logical OR and AND (see :meth:`BloomFilter.union`
+    and :meth:`BloomFilter.intersection`). The capacity and error_rate then together
+    serve as a contract -- you add less than capacity items, and the Bloom filter
+    will have an error rate less than error_rate.
+
+    Raises :class:`OSError` if the supplied filename does not exist or if user
+    lacks permission to access such file. Raises :class:`ValueError` if the supplied
+    ``error_rate`` is invalid, ``hash_seeds`` does not contain valid hash seeds, or
+    if the file cannot be read.
 
 Class Methods
 -------------
 
-.. classmethod:: BloomFilter.open(filename)
+.. classmethod:: BloomFilter.open(filename, [mode="rw+"])
 
-   Return a BloomFilter object using an already existing BloomFilter file.
+    Create a :class:`BloomFilter` object from an existing file.
 
-.. classmethod:: BloomFilter.from_base64(filename, string, [perm=0755])
+    :param str filename: existing filename
+    :param str mode: file access mode
+    :rtype: :class:`BloomFilter`
 
-   Unpack the supplied base64 string (as returned by BloomFilter.to_base64)
-   into the supplied filename and return a BloomFilter object using that
-   file.
+.. classmethod:: BloomFilter.from_base64(filename, string, [mode="rw+"] [perm=0755])
 
-   Example::
+    Unpack the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
+    into the supplied filename and return a :class:`BloomFilter` object using that
+    file.
 
-    >>> bf = BloomFilter.from_base64("/tmp/mike.bf", 
+    Example::
+
+        >>> bf = BloomFilter.from_base64("/tmp/mike.bf",
             "eJwFwcuWgiAAANC9v+JCx7By0QKt0GHEbKSknflAQ9QmTyRfP/fW5E9XTRSX"
             "qcLlqGNXphAqcfVH\nRoNv0n4JlTpIvAP0e1+RyXX6I637ggA+VPZnTYR1A4"
             "Um5s9geYaZZLiT208JIiG3iwhf3Fwlzb3Y\n5NRL4uNQS6/d9OvTDJbnZMnR"
             "zcrplOX5kmsVIkQziM+vw4hCDQ3OkN9m3WVfPWzGfaTeRftMCLws\nPnzEzs"
             "gjAW60xZTBbj/bOAgYbK50PqjdzvgHZ6FHZw==\n")
-    >>> "MIKE" in bf
-    True
+        >>> "MIKE" in bf
+        True
+
+    :param str filename: new filename
+    :param str mode: file access mode
+    :param int perm: file access permission flags
+    :rtype: :class:`BloomFilter`
+
 
 Instance Attributes
----------------------
+-------------------
 
-.. attribute:: BloomFilter.capacity
+.. attribute:: BloomFilter.capacity -> int
 
-    The number of elements for this filter.
+    The maximum number of elements this filter can contain while keeping
+    the false positive rate under :attr:`BloomFilter.error_rate`. Returns an integer.
 
-.. attribute:: BloomFilter.error_rate
+.. attribute:: BloomFilter.error_rate -> float
 
-    The acceptable probability of false positives.
+    The acceptable probability of false positives. Returns a float.
 
-.. attribute:: BloomFilter.hash_seeds
+.. attribute:: BloomFilter.hash_seeds -> list
 
-    The integer seeds used for the random hashing.
+    Integer seeds used for the random hashing. Returns a list of integers.
 
-.. attribute:: BloomFilter.name
+.. attribute:: BloomFilter.name -> bytes
 
-    The file name (compatible with file objects).
+    File name (compatible with file objects). Does not apply to an in-memory
+    :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+    Returns an encoded string.
 
-.. attribute:: BloomFilter.num_bits
+.. attribute:: BloomFilter.num_bits -> int
 
-    The number of bits used in the filter as buckets.
+    Number of bits used in the filter as buckets. Returns an integer.
 
-.. attribute:: BloomFilter.num_hashes
+.. attribute:: BloomFilter.num_hashes -> int
 
-    The number of hash functions used when computing.
+    Number of hash functions used when computing. Returns an integer.
 
-.. attribute:: BloomFilter.read_only
+.. attribute:: BloomFilter.read_only -> bool
 
-    Boolean, indicating if the opened BloomFilter is read-only.
-    Always ``False`` for an in-memory BloomFilter.
+    Indicates if the opened :class:`BloomFilter` is read-only.
+    Always ``False`` for an in-memory :class:`BloomFilter`.
 
 
 Instance Methods
--------------------
+----------------
 
-.. method:: BloomFilter.add(item) -> Boolean
+.. method:: BloomFilter.add(item)
 
-   Add the item to the bloom filter.
+    Add the item to the Bloom filter.
+    Returns a boolean indicating whether this item was present
+    in the Bloom filter prior to adding (see :meth:`BloomFilter.__contains__`).
 
-   :param item: hashable object
-   :rtype: boolean (``True`` if item already in the filter)
+    :param item: hashable object
+    :rtype: bool
 
-.. method:: BloomFilter.clear_all()
+.. method:: Bloomilter.clear_all()
 
-   Remove all elements from the bloom filter at once.
+    Remove all elements from the Bloom filter at once.
 
-.. method:: BloomFilter.copy(filename) -> BloomFilter
+.. method:: BloomFilter.copy(filename)
 
-   Copies the current BloomFilter object to another object with
-   new filename.
+    Copy the current :class:`BloomFilter` object to another object
+    with a new filename.
 
-   :param filename: string filename
-   :rtype: new BloomFilter object
+    :param str filename: new filename
+    :rtype: :class:`BloomFilter`
 
-.. method:: BloomFilter.copy_template(filename, [perm=0755]) -> BloomFilter
+.. method:: BloomFilter.copy_template(filename, [perm=0755])
 
-   Creates a new BloomFilter object with the same *parameters*--same
-   hash seeds, same size.. everything. Once this is performed, the
-   two filters are *comparable*, so you can perform logical operators.
-   Example::
+    Creates a new :class:`BloomFilter` object with the exact same parameters.
+    Once this is performed, the two filters are comparable, so
+    you can perform set operations using logical operators.
 
-    >>> apple = BloomFilter(100, 0.1, '/tmp/apple')
-    >>> apple.add('apple')
-    False   
-    >>> pear = apple.copy_template('/tmp/pear')
-    >>> pear.add('pear')
-    False
-    >>> pear |= apple
+    Example::
+
+        >>> apple = BloomFilter(100, 0.1, '/tmp/apple')
+        >>> apple.add('granny_smith')
+        False
+        >>> pear = apple.copy_template('/tmp/pear')
+        >>> pear.add('conference')
+        False
+        >>> pear |= apple
+
+    :param str filename: new filename
+    :param int perm: file access permission flags
+    :rtype: :class:`BloomFilter`
 
 .. method:: BloomFilter.sync()
 
-   Forces a sync() call on the underlying mmap file object. Use this if
-   you are about to copy the file and you want to be Sure (TM) you got
-   everything correctly.
+    Forces a ``sync()`` call on the underlying mmap file object. Use this if
+    you are about to copy the file and you want to be sure you got
+    everything correctly.
 
-.. method:: BloomFilter.to_base64() -> string
+.. method:: BloomFilter.to_base64()
 
-   Creates a compressed, base64 encoded version of the Bloom filter.
-   Since the bloom filter is efficiently in binary on the file system
-   this may not be too useful. I find it useful for debugging so I can
-   copy filters from one terminal to another in their entirety.
+    Creates a compressed, base64 encoded version of the :class:`BloomFilter`.
+    Since the Bloom filter is efficiently in binary on the file system,
+    this may not be too useful. I find it useful for debugging so I can
+    copy filters from one terminal to another in their entirety.
 
-   :rtype: base64 encoded string representing filter
+    :rtype: base64 encoded string representing filter
 
 .. method:: BloomFilter.update(iterable)
 
-   Calls add() on all items in the iterable.
+    Calls :meth:`BloomFilter.add` on all items in the iterable.
 
-.. method:: BloomFilter.union(filter) -> BloomFilter
+.. method:: BloomFilter.union(filter)
 
-   Perform a set OR with another *comparable* filter.
-   You can (only) construct comparable filters with **copy_template** above.
-   See the example in copy_template. In that example, pear will have
-   both "apple" and "pear".
-   
-   The result will occur **in place**. That is, calling::
+    Perform a set OR with another comparable filter. You can (only) construct
+    comparable filters with :meth:`BloomFilter.copy_template` above. In the above
+    example, Bloom filter ``pear`` will have both "granny_smith" and "conference".
 
-      bf.union(bf2)
+    The computation will occur *in place*. That is, calling::
 
-   is a way to add all the elements of bf2 to bf.
+        >>> bf.union(bf2)
 
-   *N.B.: Calling this function will render future calls to len()
-   invalid.*
+    is a way of adding *all* the elements of ``bf2`` to ``bf``.
 
-.. method:: BloomFilter.intersection(filter) -> BloomFilter
+    *NB: Calling this function will render future calls to len()
+    invalid.*
 
-   The same as union() above except it uses a set AND instead of a
-   set OR.
+    :param BloomFilter other: filter to perform the union with
+    :rtype: :class:`BloomFilter`
 
-   *N.B.: Calling this function will render future calls to len()
-   invalid.*
+.. method:: BloomFilter.intersection(other)
+
+    The same as :meth:`BloomFilter.union` above except it uses
+    a set AND instead of a set OR.
+
+    *NB: Calling this function will render future calls to len()
+    invalid.*
+
+    :param BloomFilter other: filter to perform the intersection with
+    :rtype: :class:`BloomFilter`
+
 
 Magic Methods
---------------
+-------------
 
-.. method:: BloomFilter.__len__(item) -> Integer
+.. method:: BloomFilter.__len__(item)
 
-   Returns the number of distinct elements that have been
-   added to the BloomFilter object, subject to the error
-   given in error_rate.
+    Returns the number of distinct elements that have been
+    added to the :class:`BloomFilter` object, subject to the error
+    given in :attr:`BloomFilter.error_rate`.
 
-   Example::
+    Example::
 
-      >>> bf = BloomFilter(100, 0.1, '/tmp/fruit.bloom')
-      >>> bf.add("Apple")
-      >>> bf.add('Apple')
-      >>> bf.add('orange')
-      >>> len(bf)
-      2
-      >>> bf2 = bf.copy_template('/tmp/new.bloom')
-      >>> bf2 |= bf
-      >>> len(bf2)
-      Traceback (most recent call last):
-        ...
-      pybloomfilter.IndeterminateCountError: Length of BloomFilter object is unavailable after intersection or union called.
+        >>> bf = BloomFilter(100, 0.1, '/tmp/fruit.bloom')
+        >>> bf.add('apple')
+        >>> bf.add('apple')
+        >>> bf.add('orange')
+        >>> len(bf)
+        2
 
-.. method:: BloomFilter.__in__(item) -> Boolean
+        >>> bf2 = bf.copy_template('/tmp/new.bloom')
+        >>> bf2 |= bf
+        >>> len(bf2)
+        Traceback (most recent call last):
+            ...
+        pybloomfilter.IndeterminateCountError: Length of BloomFilter object is unavailable after intersection or union called.
 
-   Check to see if item is contained in the filter, with
-   an acceptable false positive rate of error_rate (see above).
+    :param item: hashable object
+    :rtype: int
 
-.. method:: BloomFilter.__ior__(filter) -> BloomFilter
+.. method:: BloomFilter.__contains__(item)
 
-   See :meth:`BloomFilter.union`.
+    Check to see if item is contained in the filter, with
+    an acceptable false positive rate of :attr:`BloomFilter.error_rate` (see above).
 
-.. method:: BloomFilter.__iand__(filter) -> BloomFilter
+    :param item: hashable object
+    :rtype: bool
 
-   See :meth:`BloomFilter.intersection`.
+.. method:: BloomFilter.__ior__(filter)
+
+    See :meth:`BloomFilter.union`.
+
+.. method:: BloomFilter.__iand__(filter)
+
+    See :meth:`BloomFilter.intersection`.
+
 
 Exceptions
---------------
+----------
 
 .. class:: IndeterminateCountError(message)
 
-   The exception that is raised if len() is called on a BloomFilter
-   object after |=, &=, intersection(), or union() is used.
+    The exception that is raised if len() is called on a :class:`BloomFilter`
+    object after \|=, &=, :meth:`BloomFilter.intersection`, or :meth:`BloomFilter.union` is used.
