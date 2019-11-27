@@ -302,6 +302,64 @@ class SimpleTestCase(unittest.TestCase):
         self.assertEqual(bf1_seeds, bf2_seeds)
         self.assertEqual(bf1_base64, bf2_base64)
 
+    def test_bit_array(self):
+        bf = pybloomfilter.BloomFilter(1000, 0.01, self.tempfile.name)
+        bf.add("apple")
+
+        # Count the number of 1s
+        total_ones = 0
+        bit_array_str = bin(bf.bit_array)
+        for c in bit_array_str:
+            if c == "1":
+                total_ones += 1
+
+        # For the first item addition, BF should contain
+        # the same amount of 1s as the number of hashes
+        # performed
+        assert total_ones == bf.num_hashes
+
+        for i in range(1000):
+            bf.add(randint(0, 1000))
+
+        bf.add("apple")
+        ba_1 = bf.bit_array
+
+        bf.add("apple")
+        ba_2 = bf.bit_array
+
+        # Should be the same
+        assert ba_1 ^ ba_2 == 0
+
+        bf.add("pear")
+        bf.add("mango")
+        ba_3 = bf.bit_array
+
+        # Should not be the same
+        assert ba_1 ^ ba_3 != 0
+
+    def test_bit_array_same_hashes(self):
+        capacity = 100 * 100
+        items = []
+        for i in range(capacity):
+            items.append(randint(0, 1000))
+        
+        # File-backed
+        bf1 = pybloomfilter.BloomFilter(capacity, 0.01, self.tempfile.name)
+        bf1.update(items)
+
+        bf1_hs = bf1.hash_seeds
+        bf1_ba = bf1.bit_array
+        bf1.close()
+
+        # In-memory
+        bf2 = pybloomfilter.BloomFilter(capacity, 0.01, hash_seeds=bf1_hs)
+        bf2.update(items)
+
+        bf2_ba = bf2.bit_array
+
+        # Should be identical as data was hashed into the same locations
+        assert bf1_ba ^ bf2_ba == 0
+
 
 def suite():
     suite = unittest.TestSuite()
