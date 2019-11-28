@@ -250,15 +250,6 @@ class SimpleTestCase(unittest.TestCase):
         bf = pybloomfilter.BloomFilter(100, 0.01)
         self.assertRaises(NotImplementedError, bf.to_base64)
 
-    def test_ReadFile_is_public(self):
-        self.assertEqual(
-            isinstance(pybloomfilter.BloomFilter.ReadFile, object), True)
-        bf = pybloomfilter.BloomFilter(100, 0.01)
-        bf2 = pybloomfilter.BloomFilter(100, 0.01)
-        self.assertEqual(bf.ReadFile, bf2.ReadFile)
-        self.assertEqual(pybloomfilter.BloomFilter.ReadFile,
-                          bf.ReadFile)
-
     def test_copy_template(self):
         self._populate_filter(self.bf)
         with tempfile.NamedTemporaryFile() as _file:

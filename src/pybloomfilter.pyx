@@ -23,7 +23,6 @@ import zlib
 
 cdef extern int errno
 cdef NoConstruct = object()
-cdef ReadFile = object()
 
 
 cdef _construct_access(mode):
@@ -84,122 +83,113 @@ cdef class BloomFilter:
     cdef int _closed
     cdef int _in_memory
     cdef int _oflags
-    cdef public ReadFile
 
-    def __cinit__(self, capacity, error_rate, filename=None, mode="rw+", perm=0755, hash_seeds=None):
-        cdef char * seeds
-        cdef long long num_bits
-        cdef int _capacity
-
+    def __cinit__(self, capacity, error_rate, filename=None, perm=0755, hash_seeds=None):
         self._closed = 0
         self._in_memory = 0
         self._oflags = os.O_RDWR
-        self.ReadFile = self.__class__.ReadFile
 
-        if filename is NoConstruct:
+        if capacity is NoConstruct:
             return
 
-        if capacity is self.ReadFile:
-            # Create should not be allowed in read mode
-            mode = mode.replace("+", "")
-            _capacity = 0
+        self._create(capacity, error_rate, filename, perm, hash_seeds)
 
-            if not os.path.exists(filename):
-                raise OSError("File %s not found" % filename)
+    def _create(self, capacity, error_rate, filename=None, perm=0755, hash_seeds=None):
+        cdef char * seeds
+        cdef long long num_bits
 
-            if not os.access(filename, _construct_access(mode)):
-                raise OSError("Insufficient permissions for file %s" % filename)
+        # Make sure that if the filename is defined, that the
+        # file exists
+        if filename and os.path.exists(filename):
+            os.unlink(filename)
+
+        # For why we round down for determining the number of hashes:
+        # http://corte.si/%2Fposts/code/bloom-filter-rules-of-thumb/index.html
+        # "The number of hashes determines the number of bits that need to
+        # be read to test for membership, the number of bits that need to be
+        # written to add an element, and the amount of computation needed to
+        # calculate hashes themselves. We may sometimes choose to use a less
+        # than optimal number of hashes for performance reasons (especially
+        # when we choose to round down when the calculated optimal number of
+        # hashes is fractional)."
+
+        if not (0 < error_rate < 1):
+            raise ValueError("error_rate allowable range (0.0, 1.0) %f" % (error_rate,))
+
+        array_seeds = array.array('I')
+
+        if hash_seeds:
+            for seed in hash_seeds:
+                if not isinstance(seed, int) or seed < 0 or seed.bit_length() > 32:
+                    raise ValueError("invalid hash seed '%s', must be >= 0 "
+                                        "and up to 32 bits in size" % seed)
+            num_hashes = len(hash_seeds)
+            array_seeds.extend(hash_seeds)
         else:
-            _capacity = capacity
+            num_hashes = max(math.floor(math.log2(1 / error_rate)), 1)
+            array_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
+
+        test = array_seeds.tobytes()
+        seeds = test
+
+        bits_per_hash = math.ceil(
+                capacity * abs(math.log(error_rate)) /
+                (num_hashes * (math.log(2) ** 2)))
+
+        # Minimum bit vector of 128 bits
+        num_bits = max(num_hashes * bits_per_hash,128)
+
+        # print("k = %d  m = %d  n = %d   p ~= %.8f" % (
+        #     num_hashes, num_bits, capacity,
+        #     (1.0 - math.exp(- float(num_hashes) * float(capacity) / num_bits))
+        #     ** num_hashes))
+
+        # If a filename is provided, we should make a mmap-file
+        # backed bloom filter. Otherwise, it will be malloc
+        if filename:
+            self._bf = cbloomfilter.bloomfilter_Create_Mmap(capacity,
+                                                    error_rate,
+                                                    filename.encode(),
+                                                    num_bits,
+                                                    self._oflags | os.O_CREAT,
+                                                    perm,
+                                                    <int *>seeds,
+                                                    num_hashes)
+        else:
+            self._in_memory = 1
+            self._bf = cbloomfilter.bloomfilter_Create_Malloc(capacity,
+                                                    error_rate,
+                                                    num_bits,
+                                                    <int *>seeds,
+                                                    num_hashes)
+        if self._bf is NULL:
+            if filename:
+                raise OSError(errno, '%s: %s' % (os.strerror(errno),
+                                                    filename))
+            else:
+                cpython.PyErr_NoMemory()
+
+    def _open(self, filename, mode="rw"):
+        # Should not overwrite
+        mode = mode.replace("+", "")
+
+        if not os.path.exists(filename):
+            raise OSError(eno.ENOENT, '%s: %s' % (os.strerror(eno.ENOENT),
+                                                        filename))
+        if not os.access(filename, _construct_access(mode)):
+            raise OSError("Insufficient permissions for file %s" % filename)
 
         self._oflags = _construct_mode(mode)
-
-        if not self._oflags & os.O_CREAT:
-            if os.path.exists(filename):
-                self._bf = cbloomfilter.bloomfilter_Create_Mmap(_capacity,
-                                                           error_rate,
-                                                           filename.encode(),
-                                                           0,
-                                                           self._oflags,
-                                                           perm,
-                                                           NULL, 0)
-                if self._bf is NULL:
-                    raise ValueError("Invalid %s file: %s" %
-                                     (self.__class__.__name__, filename))
-            else:
-                raise OSError(eno.ENOENT, '%s: %s' % (os.strerror(eno.ENOENT),
-                                                      filename))
-        else:
-            # Make sure that if the filename is defined, that the
-            # file exists
-            if filename and os.path.exists(filename):
-                os.unlink(filename)
-
-            # For why we round down for determining the number of hashes:
-            # http://corte.si/%2Fposts/code/bloom-filter-rules-of-thumb/index.html
-            # "The number of hashes determines the number of bits that need to
-            # be read to test for membership, the number of bits that need to be
-            # written to add an element, and the amount of computation needed to
-            # calculate hashes themselves. We may sometimes choose to use a less
-            # than optimal number of hashes for performance reasons (especially
-            # when we choose to round down when the calculated optimal number of
-            # hashes is fractional)."
-
-            if not (0 < error_rate < 1):
-                raise ValueError("error_rate allowable range (0.0, 1.0) %f" % (error_rate,))
-
-            array_seeds = array.array('I')
-
-            if hash_seeds:
-                for seed in hash_seeds:
-                    if not isinstance(seed, int) or seed < 0 or seed.bit_length() > 32:
-                        raise ValueError("invalid hash seed '%s', must be >= 0 "
-                                         "and up to 32 bits in size" % seed)
-                num_hashes = len(hash_seeds)
-                array_seeds.extend(hash_seeds)
-            else:
-                num_hashes = max(math.floor(math.log2(1 / error_rate)), 1)
-                array_seeds.extend([random.getrandbits(32) for i in range(num_hashes)])
-
-            test = array_seeds.tobytes()
-            seeds = test
-
-            bits_per_hash = math.ceil(
-                    capacity * abs(math.log(error_rate)) /
-                    (num_hashes * (math.log(2) ** 2)))
-
-            # Minimum bit vector of 128 bits
-            num_bits = max(num_hashes * bits_per_hash,128)
-
-            # print("k = %d  m = %d  n = %d   p ~= %.8f" % (
-            #     num_hashes, num_bits, capacity,
-            #     (1.0 - math.exp(- float(num_hashes) * float(capacity) / num_bits))
-            #     ** num_hashes))
-
-            # If a filename is provided, we should make a mmap-file
-            # backed bloom filter. Otherwise, it will be malloc
-            if filename:
-                self._bf = cbloomfilter.bloomfilter_Create_Mmap(_capacity,
-                                                       error_rate,
-                                                       filename.encode(),
-                                                       num_bits,
-                                                       self._oflags,
-                                                       perm,
-                                                       <int *>seeds,
-                                                       num_hashes)
-            else:
-                self._in_memory = 1
-                self._bf = cbloomfilter.bloomfilter_Create_Malloc(_capacity,
-                                                       error_rate,
-                                                       num_bits,
-                                                       <int *>seeds,
-                                                       num_hashes)
-            if self._bf is NULL:
-                if filename:
-                    raise OSError(errno, '%s: %s' % (os.strerror(errno),
-                                                     filename))
-                else:
-                    cpython.PyErr_NoMemory()
+        self._bf = cbloomfilter.bloomfilter_Create_Mmap(0,
+                                                0,
+                                                filename.encode(),
+                                                0,
+                                                self._oflags,
+                                                0,
+                                                NULL, 0)
+        if self._bf is NULL:
+            raise ValueError("Invalid %s file: %s" %
+                                (self.__class__.__name__, filename))
 
     def __dealloc__(self):
         cbloomfilter.bloomfilter_Destroy(self._bf)
@@ -345,7 +335,7 @@ cdef class BloomFilter:
         :rtype: :class:`BloomFilter`
         """
         self._assert_open()
-        cdef BloomFilter copy = BloomFilter(0, 0, NoConstruct)
+        cdef BloomFilter copy = BloomFilter(NoConstruct, 0)
         if os.path.exists(filename):
             os.unlink(filename)
         copy._bf = cbloomfilter.bloomfilter_Copy_Template(self._bf, filename.encode(), perm)
@@ -363,7 +353,7 @@ cdef class BloomFilter:
             raise NotImplementedError('Cannot call .copy on an in-memory %s' %
                                       self.__class__.__name__)
         shutil.copy(self._bf.array.filename, filename)
-        return self.__class__(self.ReadFile, 0.1, filename, perm=0)
+        return self.open(filename)
 
     def add(self, item_):
         """Adds an item to the Bloom filter. Returns a boolean indicating whether
@@ -508,13 +498,12 @@ cdef class BloomFilter:
         return result
 
     @classmethod
-    def from_base64(cls, filename, string, mode="rw", perm=0755):
+    def from_base64(cls, filename, string, perm=0755):
         """Unpacks the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
         into the supplied filename and return a :class:`BloomFilter` object using that
         file.
 
         :param str filename: new filename
-        :param str mode: file access mode
         :param int perm: file access permission flags
         :rtype: :class:`BloomFilter`
         """
@@ -522,14 +511,16 @@ cdef class BloomFilter:
         os.write(bfile_fp, zlib.decompress(b64decode(zlib.decompress(
             b64decode(string)))))
         os.close(bfile_fp)
-        return cls.open(filename, mode)
+        return cls.open(filename)
 
     @classmethod
-    def open(cls, filename, mode="rw+"):
+    def open(cls, filename, mode="rw"):
         """Creates a :class:`BloomFilter` object from an existing file.
 
         :param str filename: existing filename
         :param str mode: file access mode
         :rtype: :class:`BloomFilter`
         """
-        return cls(cls.ReadFile, 0.1, filename=filename, mode=mode, perm=0)
+        instance = cls(NoConstruct, 0)
+        instance._open(filename, mode)
+        return instance
