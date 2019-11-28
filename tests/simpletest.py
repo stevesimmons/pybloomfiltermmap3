@@ -127,46 +127,46 @@ class SimpleTestCase(unittest.TestCase):
 
     def test_open(self):
         self._populate_filter(self.bf)
+        self.assertEqual(self.bf.read_only, False)
         self.bf.sync()
 
-        bf = pybloomfilter.BloomFilter.open(self.bf.filename)
-        self._check_filter_contents(bf)
+        # Read and write
+        bf1 = pybloomfilter.BloomFilter.open(self.bf.filename)
+        self._check_filter_contents(bf1)
+        self.assertEqual(bf1.read_only, False)
 
-    @with_test_file
-    def test_readonly(self, filename):
-        bf = pybloomfilter.BloomFilter(self.FILTER_SIZE,
-                                       self.FILTER_ERROR_RATE,
-                                       filename)
-        self._populate_filter(bf)
-        self._check_filter_contents(bf)
-        self.assertEqual(bf.read_only, False)
-        bf.sync()
+        bf2 = pybloomfilter.BloomFilter.open(self.bf.name.decode(), mode="rw")
+        self._check_filter_contents(bf2)
+        self.assertEqual(bf2.read_only, False)
 
-        bfro = pybloomfilter.BloomFilter.open(filename, mode="r")
+        # Read only
+        bfro = pybloomfilter.BloomFilter.open(self.bf.name.decode(), mode="r")
         self._check_filter_contents(bfro)
         self.assertEqual(bfro.read_only, True)
 
-    def test_readonly_cannot_write(self):
+    def test_open_missing_file_is_os_error(self):
+        self.assertRaises(OSError, pybloomfilter.BloomFilter.open,
+                            "missing_directory/some_file.bloom", "r")
+        self.assertRaises(OSError, pybloomfilter.BloomFilter.open,
+                            "missing_directory/some_file.bloom", "rw")
+
+    def test_read_only_write_is_value_error(self):
         bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertEqual(bfro.read_only, True)
         self.assertRaises(ValueError, bfro.add, "test")
         self.assertRaises(ValueError, bfro.update, ["test"])
         self.assertRaises(ValueError, bfro.sync)
         self.assertRaises(ValueError, bfro.clear_all)
 
-    def test_readonly_cannot_do_set_operations(self):
+    def test_read_only_set_operations_is_value_error(self):
         bf_mem = pybloomfilter.BloomFilter(self.FILTER_SIZE,
                                            self.FILTER_ERROR_RATE)
 
         bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
+        self.assertEqual(bfro.read_only, True)
         self.assertRaises(ValueError, bfro.union, bf_mem)
-
-        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
         self.assertRaises(ValueError, bfro.intersection, bf_mem)
-
-        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
         self.assertRaises(ValueError, bfro.__ior__, bf_mem)
-
-        bfro = pybloomfilter.BloomFilter.open(self.tempfile.name, mode="r")
         self.assertRaises(ValueError, bfro.__iand__, bf_mem)
 
     @with_test_file
@@ -177,6 +177,7 @@ class SimpleTestCase(unittest.TestCase):
         bf = self.bf.copy(filename)
         self._check_filter_contents(bf)
         self.assertPropertiesPreserved(self.bf, bf)
+        self.assertEqual(bf.read_only, False)
 
     def assertBfPermissions(self, bf, perms):
         oct_mode = oct(os.stat(bf.filename).st_mode)
@@ -255,6 +256,7 @@ class SimpleTestCase(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as _file:
             bf2 = self.bf.copy_template(_file.name)
             self.assertPropertiesPreserved(self.bf, bf2)
+            self.assertEqual(bf2.read_only, False)
             bf2.union(self.bf)  # Asserts copied bloom filter is comparable
             self._check_filter_contents(bf2)
 
