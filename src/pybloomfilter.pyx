@@ -9,16 +9,16 @@ __VERSION__ = VERSION
 cimport cbloomfilter
 cimport cpython
 
-import random
-import os
-import math
-import errno as eno
 import array
-import zlib
+from base64 import b64encode, b64decode
+import errno as eno
+import math
+import os
+import random
 import shutil
 import sys
-import base64
 import warnings
+import zlib
 
 
 cdef extern int errno
@@ -483,7 +483,7 @@ cdef class BloomFilter:
             raise ValueError("Write operation on read-only file")
 
     def _assert_comparable(self, BloomFilter other):
-        error = ValueError("The two %s objects are not the same type (hint, "
+        error = ValueError("The two %s objects are not the same type (hint: "
                            "use copy_template)" % self.__class__.__name__)
         if self._bf.array.bits != other._bf.array.bits:
             raise error
@@ -500,14 +500,15 @@ cdef class BloomFilter:
         :rtype: base64 encoded string representing filter
         """
         self._assert_open()
-        bfile = open(self.filename, 'rb')
+        bfile = open(self.filename, "rb")
         fl_content = bfile.read()
-        result = base64.b64encode(zlib.compress(base64.b64encode(zlib.compress(fl_content, 9))))
+        result = b64encode(zlib.compress(b64encode(zlib.compress(
+            fl_content, 9))))
         bfile.close()
         return result
 
     @classmethod
-    def from_base64(cls, filename, string, mode="rw+", perm=0755):
+    def from_base64(cls, filename, string, mode="rw", perm=0755):
         """Unpacks the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
         into the supplied filename and return a :class:`BloomFilter` object using that
         file.
@@ -517,9 +518,9 @@ cdef class BloomFilter:
         :param int perm: file access permission flags
         :rtype: :class:`BloomFilter`
         """
-        bfile_fp = os.open(filename, _construct_mode('w+'), perm)
-        os.write(bfile_fp, zlib.decompress(base64.b64decode(zlib.decompress(
-            base64.b64decode(string)))))
+        bfile_fp = os.open(filename, _construct_mode("w+"), perm)
+        os.write(bfile_fp, zlib.decompress(b64decode(zlib.decompress(
+            b64decode(string)))))
         os.close(bfile_fp)
         return cls.open(filename, mode)
 
