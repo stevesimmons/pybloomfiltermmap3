@@ -180,6 +180,14 @@ cdef class BloomFilter:
         self._bf = NULL
 
     @property
+    def bit_array(self):
+        self._assert_open()
+        start_pos = self._bf.array.preamblebytes
+        end_pos = start_pos + self._bf.array.bytes
+        arr = (<char *>cbloomfilter.mbarray_CharData(self._bf.array))[start_pos:end_pos]
+        return int.from_bytes(arr, byteorder="big", signed=False)
+
+    @property
     def hash_seeds(self):
         self._assert_open()
         seeds = array.array('I')

@@ -6,6 +6,8 @@ cdef extern from "mmapbitarray.h":
      ctypedef struct MBArray:
          long bits
          long size
+         long bytes
+         long preamblebytes
          char * filename
          int fd
 
