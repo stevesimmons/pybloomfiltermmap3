@@ -109,6 +109,10 @@ class SimpleTestCase(unittest.TestCase):
                 self.bf.capacity, self.bf.error_rate, self.bf.num_hashes),
             str(self.bf))
 
+    def test_filename(self):
+        # .name is pending deprecation, ensure .filename is equivalent
+        self.assertEqual(self.bf.name.decode(), self.bf.filename)
+
     def test_add_and_check_file_backed(self):
         self._populate_filter(self.bf)
         self._check_filter_contents(self.bf)
@@ -125,7 +129,7 @@ class SimpleTestCase(unittest.TestCase):
         self._populate_filter(self.bf)
         self.bf.sync()
 
-        bf = pybloomfilter.BloomFilter.open(self.bf.name.decode())
+        bf = pybloomfilter.BloomFilter.open(self.bf.filename)
         self._check_filter_contents(bf)
 
     @with_test_file
@@ -175,7 +179,7 @@ class SimpleTestCase(unittest.TestCase):
         self.assertPropertiesPreserved(self.bf, bf)
 
     def assertBfPermissions(self, bf, perms):
-        oct_mode = oct(os.stat(bf.name).st_mode)
+        oct_mode = oct(os.stat(bf.filename).st_mode)
         self.assertTrue(oct_mode.endswith(perms),
                      'unexpected perms %s' % oct_mode)
 
@@ -235,7 +239,7 @@ class SimpleTestCase(unittest.TestCase):
 
     def test_name_does_not_segfault(self):
         bf = pybloomfilter.BloomFilter(100, 0.01)
-        self.assertRaises(NotImplementedError, lambda: bf.name)
+        self.assertRaises(NotImplementedError, lambda: bf.filename)
 
     def test_copy_does_not_segfault(self):
         bf = pybloomfilter.BloomFilter(100, 0.01)

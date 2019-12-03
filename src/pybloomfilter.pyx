@@ -18,6 +18,7 @@ import zlib
 import shutil
 import sys
 import base64
+import warnings
 
 
 cdef extern int errno
@@ -248,12 +249,7 @@ cdef class BloomFilter:
         self._assert_open()
         return self._bf.array.bits
 
-    @property
-    def name(self):
-        """File name (compatible with file objects). Does not apply to an in-memory
-        :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
-        Returns an encoded string.
-        """
+    def _name(self):
         self._assert_open()
         if self._in_memory:
             raise NotImplementedError('Cannot access .name on an in-memory %s'
@@ -261,6 +257,25 @@ cdef class BloomFilter:
         if self._bf.array.filename is NULL:
             return None
         return self._bf.array.filename
+
+    @property
+    def name(self):
+        """PENDING DEPRECATION - use :meth:`BloomFilter.filename` instead.
+
+        File name (compatible with file objects). Does not apply to an in-memory
+        :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+        Returns an encoded string.
+        """
+        warnings.warn('name will be deprecated in future versions, use '
+                      'filename instead', PendingDeprecationWarning)
+        return self._name()
+
+    @property
+    def filename(self):
+        """File name (compatible with file objects). Does not apply to an in-memory
+        :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+        """
+        return self._name().decode()
 
     @property
     def read_only(self):
@@ -484,7 +499,7 @@ cdef class BloomFilter:
         :rtype: base64 encoded string representing filter
         """
         self._assert_open()
-        bfile = open(self.name, 'rb')
+        bfile = open(self.filename, 'rb')
         fl_content = bfile.read()
         result = base64.b64encode(zlib.compress(base64.b64encode(zlib.compress(fl_content, 9))))
         bfile.close()
