@@ -287,8 +287,7 @@ class SimpleTestCase(unittest.TestCase):
                                         self.tempfile.name)
         bf1.add(test_data)
         bf1_seeds = bf1.hash_seeds.tolist()
-        bf1_base64 = bf1.to_base64()
-        bf1.close()
+        bf1_ba = bf1.bit_array
 
         bf2 = pybloomfilter.BloomFilter(self.FILTER_SIZE,
                                         self.FILTER_ERROR_RATE,
@@ -296,11 +295,12 @@ class SimpleTestCase(unittest.TestCase):
                                         hash_seeds=bf1_seeds)
         bf2.add(test_data)
         bf2_seeds = bf2.hash_seeds.tolist()
-        bf2_base64 = bf2.to_base64()
-        bf2.close()
+        bf2_ba = bf2.bit_array
 
         self.assertEqual(bf1_seeds, bf2_seeds)
-        self.assertEqual(bf1_base64, bf2_base64)
+
+        # Expecting same hashing sequence
+        self.assertEqual(bf1_ba, bf2_ba)
 
     def test_bit_array(self):
         bf = pybloomfilter.BloomFilter(1000, 0.01, self.tempfile.name)
@@ -349,7 +349,6 @@ class SimpleTestCase(unittest.TestCase):
 
         bf1_hs = bf1.hash_seeds
         bf1_ba = bf1.bit_array
-        bf1.close()
 
         # In-memory
         bf2 = pybloomfilter.BloomFilter(capacity, 0.01, hash_seeds=bf1_hs)
