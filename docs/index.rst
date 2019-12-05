@@ -1,17 +1,18 @@
-.. Python BloomFilter documentation master file, created by
-   sphinx-quickstart on Wed Mar 31 16:25:58 2010.
+.. pybloomfilter documentation master file, created by
+   sphinx-quickstart on Tue Nov 26 10:03:21 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Python BloomFilter's documentation!
-==============================================
+pybloomfiltermmap3: a fast implementation of Bloom filter for Python
+====================================================================
 
 `pybloomfiltermmap3` is a Python 3  fork of `pybloomfiltermmap` by `Michael Axiak (@axiak) <https://github.com/axiak>`_.
 
-Bloom filter is a probablilistic data structure used to test whether an element
-is a member of a set. The `wikipedia page <http://en.wikipedia.org/wiki/Bloom_filter>`_
-has further information on their nature. This module implements a Bloom filter
-in python that's fast and uses mmap files for better scalability.
+Bloom filter is a probabilistic data structure used to test whether an element is a member of a set.
+The `wikipedia page <http://en.wikipedia.org/wiki/Bloom_filter>`_ has further information on their nature.
+
+This module implements a Bloom filter in Python that's fast
+and uses mmap files for better scalability.
 
 Here's a quick example:
 
@@ -27,11 +28,10 @@ Here's a quick example:
     >>> print 'apple' in bf
     True
 
-That wasn't so hard, was it? Now, there are a lot of other things
-we can do. For instance, let's say we want to create a similar
-filter with just a few pieces of fruit:
+That wasn't so hard, was it? Now, there are a lot of other things we can do.
+For instance, let's say we want to create a similar filter with just a few pieces of fruit:
 
-.. code:: python
+.. code-block:: python
 
     >>> fruitbf = bf.copy_template("fruit.bloom")
     >>> fruitbf.update(("apple", "banana", "orange", "pear"))
@@ -48,43 +48,49 @@ filter with just a few pieces of fruit:
     "ji/EC8s1PWG5fuVizW4Jox6/3o9XxBBDDLFbwcg9v/AwjrPHtTRsX34O01mxLw37bhCTjJk0+PLK"
     "08HYd4MYYojdKmYnBfjsktEpySY2tGGZzWaIIfYDGB271Yaieaat/AaOkNKb"
 
-Reference
-------------
 
-All of the reference information is available below:
-
-.. toctree::
-   :maxdepth: 2
-
-   ref
-
-
-
-Why pybloomfilter
----------------------
+Why pybloomfilter?
+------------------
 
 As already mentioned, there are a couple reasons to use this module:
 
- * It natively uses `mmaped files <http://en.wikipedia.org/wiki/Mmap>`_.
- * It natively does the set things you want a Bloom filter to do.
- * It is Fast (see Benchmarks by Michael Axiak).
+* It natively uses `mmaped files <http://en.wikipedia.org/wiki/Mmap>`_.
+* It natively does the set things you want a Bloom filter to do.
+* It is fast (see `benchmarks <http://axiak.github.io/pybloomfiltermmap/#benchmarks>`_).
 
 
 Install
----------------------
+-------
 
-Please have `Cython` installed. Please note that this version is for Python 3.
-In case you are using Python 2, please see https://github.com/axiak/pybloomfiltermmap.
+Please note that this version is for Python 3.5 and over.
+In case you are using Python 2, please see `pybloomfiltermmap <https://github.com/axiak/pybloomfiltermmap>`_.
 
-To install::
+To build and install::
 
-    $ pip install cython
     $ pip install pybloomfiltermmap3
 
-to build and install the module.
 
 Develop
------------------------
+-------
 
 To develop you will need Cython. The setup.py script should automatically
 build from Cython source if the Cython module is available.
+
+
+.. toctree::
+    :caption: Class Reference
+    :maxdepth: 2
+
+    ref
+
+.. toctree::
+    :hidden:
+    :caption: Distribution
+    :maxdepth: 1
+
+    License <license>
+    Authors <authors>
+    Changelog <changelog>
+
+
+.. _Python: http://docs.python.org/

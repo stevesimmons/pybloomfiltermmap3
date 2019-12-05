@@ -1,71 +1,80 @@
-0.5.0 2019-11-25)
- - Add support for Read-Only `bloomfilter` files (@mizvyt)               [FEATURE]
- - Installation errors due to missing Cython deps. should now be fixed.
-   (@mizvyt)                                                             [BUG]
- - Drop `Python <= 3.4` (@mizvyt)                                        [FEATURE]
+=========
+Changelog
+=========
 
-0.4.19 2019-10-11)
- - Ensure that filename is encoded in `copy_template` (@gonzalezzfelipe) [BUG]
+All notable changes to this project will be documented in this file.
 
-0.4.18 2019-10-08)
- - Fix missing cython dependency in setup.py (@mizvyt).                  [BUG]
+The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
+and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-0.4.16 2019-08-24)
- - Fix r/w of base64 encoded filter files (@gaetano-guerriero).          [BUG]
 
-0.4.14 2016-04-09)
- - Remove Python 2 support, added Python 3 support.                      [FEATURE]
+`0.5.0`_ (2019-11-25)
+---------------------
+.. _0.5.0: https://github.com/prashnts/pybloomfiltermmap3/releases/tag/0.5.0
 
-0.3.6 2012-10-21)
- - Minor cosmetic changes to reduce noise in clang. Might have fixed
-   cryptolib linking error.                                              [BUG]
+Changes
+^^^^^^^
+- Add support for read-only Bloom filter files (`@mizvyt <mizvyt_>`_)
+- Add customization of hash seeds for hashing algorithms (`@mizvyt <mizvyt_>`_)
+- Drop Python < 3.5 support (`@mizvyt <mizvyt_>`_)
 
-0.3.6 2012-09-04)
- - Fixed memory leak in SHA512 computation. Thanks pbutler!              [BUG]
+Fixes
+^^^^^
+- Fix installation errors due to missing Cython deps, should now be fixed (`@mizvyt <mizvyt_>`_)
 
-0.3.2 2011-12-07)
- - Fixed segfault when using non-strings as values.                      [BUG]
 
-0.3.1 2011-12-07)
- - Fixed casting of size_t for very large bloom filters.                 [BUG]
- - Added option to use standard memory (rather than mmap) to back the bloom filter.
-   (Specify None or '' as the argument to file name.)                    [FEATURE]
- - Changed hash to use a "superfast" hash rather than md5 since md5 is
-   unnecessarily slow.                                                   [FEATURE]
+`0.4.19`_ (2019-10-11)
+----------------------
+.. _0.4.19: https://pypi.org/project/pybloomfiltermmap3/0.4.19
 
-0.2.0 2011-11-13)
- - Fixed hashing to use md5 hash and change the bit computation to pass
-   accuracy test.                                                        [BUG]
+Changes
+^^^^^^^
+- Ensure that filename is encoded in :meth:`~pybloomfilter.BloomFilter.copy_template` (`@gonzalezzfelipe <gonzalezzfelipe_>`_)
 
-0.1.28 2011-03-12)
- - Added check to ensure that the required permissions are available when
-   opening a file.                                                       [BUG]
 
-0.1.26 2011-03-07)
- - Added __dealloc__ to fix memory/resource leaks.                       [BUG]
- - Added .close() method to forcibly close a bloom filter object.        [FEATURE]
+`0.4.18`_ (2019-10-08)
+----------------------
+.. _0.4.18: https://pypi.org/project/pybloomfiltermmap3/0.4.18
 
-0.1.20 2010-12-21)
- - Changed prime number finder to use a standard double and add 1 to find
-   likely numbers in log(n) time.
+Fixes
+^^^^^
+- Fix missing Cython dependency in setup.py (`@mizvyt <mizvyt_>`_)
 
-0.1.18 2010-10-25)
- - Fixed issue #5, wherein a call to open() returning an invalid fd would
-   cause a seg fault.                                                     [BUG]
 
-0.1.12 2010-4-5)
- - Added __len__ which gives a good estimate of how many elements were
-   inserted [FEATURE]
- - Removed __ixor__ since it didn't make much sense.
- - Added .intersect() and .union() as a synonym for __iand__ and __ior__ [FEATURE]
- - Added reserved space to the BloomFilter structure to support future updates. [FEATURE]
+`0.4.17`_ (2019-08-25)
+----------------------
+.. _0.4.17: https://pypi.org/project/pybloomfiltermmap3/0.4.17
 
-0.1.10 2010-4-2)
- - Added MANIFEST so that building distributions works [FEATURE]
- - Restructured docs so that html is a symlink to the _build/html directory [FEATURE]
- - Added Cython detection in setup.py. Building now works without Cython installed [FEATURE]
+Fixes
+^^^^^
+- PyPi wants ``long_description`` and its type (`@prashnts <prashnts_>`_)
 
-0.1.8 2010-3-31)
- - Fixed bug where opening invalid bloom files caused seg faults [BUG]
- - Fixed alignment bug where sometimes hash seeds would not      [BUG]
-   be compared correctly.
+
+`0.4.16`_ (2019-08-25)
+----------------------
+.. _0.4.16: https://pypi.org/project/pybloomfiltermmap3/0.4.16
+
+Fixes
+^^^^^
+- Fix read / write of base64 encoded filter files (`@gaetano-guerriero <gaetano-guerriero_>`_)
+
+
+`0.4.15`_ (2019-04-09)
+----------------------
+.. _0.4.15: https://pypi.org/project/pybloomfiltermmap3/0.4.15
+
+Changes
+^^^^^^^
+- Remove Python 2 support, add Python 3 support (`@prashnts <prashnts_>`_)
+
+
+Previous Versions
+-----------------
+
+See Python 2 `pybloomfiltermmap CHANGELOG <https://github.com/axiak/pybloomfiltermmap/blob/master/CHANGELOG>`_.
+
+
+.. _prashnts: https://github.com/prashnts
+.. _mizvyt: https://github.com/mizvyt
+.. _gonzalezzfelipe: https://github.com/gonzalezzfelipe
+.. _gaetano-guerriero: https://github.com/gaetano-guerriero
