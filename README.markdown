@@ -8,6 +8,7 @@ The goal of `pybloomfiltermmap3` is simple: to provide a fast, simple, scalable,
 [![PyPI](https://img.shields.io/pypi/v/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
 [![PyPI](https://img.shields.io/pypi/dw/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
 [![PyPI](https://img.shields.io/pypi/pyversions/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
+[![Documentation Status](https://readthedocs.org/projects/pybloomfiltermmap3/badge/?version=latest)](https://pybloomfiltermmap3.readthedocs.io/en/latest/?badge=latest)
 
 
 ## Quickstart
