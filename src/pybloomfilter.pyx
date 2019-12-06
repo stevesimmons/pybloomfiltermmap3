@@ -274,6 +274,7 @@ cdef class BloomFilter:
     def filename(self):
         """File name (compatible with file objects). Does not apply to an in-memory
         :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+        Returns a string.
         """
         return self._name().decode()
 
