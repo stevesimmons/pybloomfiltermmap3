@@ -17,6 +17,8 @@ BloomFilter *bloomfilter_Create_Malloc(size_t max_num_elem, double error_rate,
     if (!bf) {
         return NULL;
     }
+    /* Cleanup alignment artifacts */
+    memset(bf, 0, sizeof(BloomFilter));
 
     bf->max_num_elem = max_num_elem;
     bf->error_rate = error_rate;
@@ -49,6 +51,8 @@ BloomFilter *bloomfilter_Create_Mmap(size_t max_num_elem, double error_rate,
     if (!bf) {
         return NULL;
     }
+    /* Cleanup alignment artifacts */
+    memset(bf, 0, sizeof(BloomFilter));
 
     bf->max_num_elem = max_num_elem;
     bf->error_rate = error_rate;
@@ -127,6 +131,8 @@ BloomFilter * bloomfilter_Copy_Template(BloomFilter * src, char * filename, int 
     if (bf == NULL) {
         return NULL;
     }
+    /* Cleanup alignment artifacts */
+    memset(bf, 0, sizeof(BloomFilter));
 
     array = mbarray_Copy_Template(src->array, filename, perms);
     if (array == NULL) {
