@@ -36,8 +36,7 @@ To create an in-memory filter, simply omit the file location:
 
 ## Docs
 
-Follow the *official* docs for `pybloomfiltermmap` at: http://axiak.github.io/pybloomfiltermmap/
-
+Current docs are available at [pybloomfiltermmap3.rtfd.io](https://pybloomfiltermmap3.readthedocs.io/en/latest).
 
 ## Install
 
