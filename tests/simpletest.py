@@ -135,12 +135,12 @@ class SimpleTestCase(unittest.TestCase):
         self._check_filter_contents(bf1)
         self.assertEqual(bf1.read_only, False)
 
-        bf2 = pybloomfilter.BloomFilter.open(self.bf.name.decode(), mode="rw")
+        bf2 = pybloomfilter.BloomFilter.open(self.bf.filename, mode="rw")
         self._check_filter_contents(bf2)
         self.assertEqual(bf2.read_only, False)
 
         # Read only
-        bfro = pybloomfilter.BloomFilter.open(self.bf.name.decode(), mode="r")
+        bfro = pybloomfilter.BloomFilter.open(self.bf.filename, mode="r")
         self._check_filter_contents(bfro)
         self.assertEqual(bfro.read_only, True)
 
