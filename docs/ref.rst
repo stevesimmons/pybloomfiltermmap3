@@ -6,7 +6,7 @@ BloomFilter Class Reference
    :platform: Unix, Windows
    :synopsis: a fast implementation of Bloom filter for Python
 
-.. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [mode="rw+"], [perm=0755], [hash_seeds = None: list])
+.. class:: BloomFilter(capacity: int, error_rate: float, [filename = None: string], [perm=0755], [hash_seeds = None: list])
 
     Creates a new BloomFilter object with a given capacity and error_rate.
 
@@ -16,8 +16,6 @@ BloomFilter Class Reference
         given that ``capacity`` is not exceeded.
     :param str filename: filename to use to create the new Bloom filter.
         If a filename is not provided, an in-memory Bloom filter will be created.
-    :param str mode: (*not applicable for an in-memory Bloom filter*)
-        file access mode.
     :param int perm: (*not applicable for an in-memory Bloom filter*)
         file access permission flags.
     :param list hash_seeds: optionally specify hash seeds to use for the
@@ -38,7 +36,7 @@ BloomFilter Class Reference
 Class Methods
 -------------
 
-.. classmethod:: BloomFilter.open(filename, [mode="rw+"])
+.. classmethod:: BloomFilter.open(filename, [mode="rw"])
 
     Creates a :class:`BloomFilter` object from an existing file.
 
@@ -46,7 +44,7 @@ Class Methods
     :param str mode: file access mode
     :rtype: :class:`BloomFilter`
 
-.. classmethod:: BloomFilter.from_base64(filename, string, [mode="rw+"] [perm=0755])
+.. classmethod:: BloomFilter.from_base64(filename, string, [perm=0755])
 
     Unpacks the supplied base64 string (as returned by :meth:`BloomFilter.to_base64`)
     into the supplied filename and return a :class:`BloomFilter` object using that
@@ -64,7 +62,6 @@ Class Methods
         True
 
     :param str filename: new filename
-    :param str mode: file access mode
     :param int perm: file access permission flags
     :rtype: :class:`BloomFilter`
 
@@ -80,6 +77,10 @@ Instance Attributes
 .. attribute:: BloomFilter.error_rate -> float
 
     The acceptable probability of false positives. Returns a float.
+
+.. attribute:: BloomFilter.bit_array -> int
+
+    Bit vector representation of the Bloom filter contents. Returns an integer.
 
 .. attribute:: BloomFilter.hash_seeds -> list
 
@@ -165,10 +166,22 @@ Instance Methods
 
 .. method:: BloomFilter.to_base64()
 
-    Creates a compressed, base64 encoded version of the :class:`BloomFilter`.
-    Since the Bloom filter is efficiently in binary on the file system,
-    this may not be too useful. I find it useful for debugging so I can
-    copy filters from one terminal to another in their entirety.
+    Serializes the :class:`BloomFilter` instance. Returns a compressed, base64 encoded string.
+    This string can later be unpacked into a :class:`BloomFilter` using :meth:`BloomFilter.from_base64`.
+
+    This may also be used to compare filter contents, given that the same ``error_rate``,
+    ``capacity`` and ``hash_seeds`` were used when constructing such filters. For example::
+
+        >>> b64_repr = "eJwFwUsOgjAUAMADuZCgKBsXhQeIWKRaEuquFihGPoYqDzm9M1U6LmUdU8UwUcNshM2IRssAwWfgSxjHjO6ssssn6bLsYTesqrtj0/dgYSuqzZ1cwISL1YrcH9V9PQ3cdN/JuRqn6nkRynUtd8rpmkldMt7Kb5EfF5d/IEl1GP/8LUuEYHN0HR5ihXL/1u65WKKZQkFsDykPfhQCpEAGGqexd4MX+vgkJ0/LCHIRNXpL0rk8SXH4A2pERcg="
+        >>> hash_seeds = [3837895095, 3446164276, 218928576, 318812276, 2715048734, 4231234832, 2646234356, 1058991177, 1248068903, 1134013883, 3269341494, 3044656612, 3079736504]
+
+        >>> bf = BloomFilter.from_base64("/tmp/bf", b64_repr)
+
+        >>> bf_rec = BloomFilter(bf.capacity, bf.error_rate, "/tmp/bf_rec", hash_seeds=bf.hash_seeds.tolist())
+        >>> bf_rec.add("5f35c4edcdb5b970ac8939a3c7abb3347ed9c4e3e251cbc799bdaeba008ce7aa")
+        >>> bf_rec.add("f416d946d98166066611fb1a5e262c5f241d9bfdd8c885e062433b6f6b73799a")
+
+        >>> assert bf_rec.to_base64() == bf.to_base64()
 
     :rtype: base64 encoded string representing filter
 

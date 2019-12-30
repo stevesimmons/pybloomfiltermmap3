@@ -197,6 +197,9 @@ cdef class BloomFilter:
 
     @property
     def bit_array(self):
+        """Bit vector representation of the Bloom filter contents.
+        Returns an integer.
+        """
         self._assert_open()
         start_pos = self._bf.array.preamblebytes
         end_pos = start_pos + self._bf.array.bytes
@@ -216,7 +219,8 @@ cdef class BloomFilter:
     @property
     def capacity(self):
         """The maximum number of elements this filter can contain while keeping
-        the false positive rate under :attr:`BloomFilter.error_rate`. Returns an integer.
+        the false positive rate under :attr:`BloomFilter.error_rate`.
+        Returns an integer.
         """
         self._assert_open()
         return self._bf.max_num_elem
