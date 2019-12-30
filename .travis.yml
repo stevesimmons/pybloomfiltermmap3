@@ -8,4 +8,4 @@ before_install:
   - pip install cython
 script:
   - cd $TRAVIS_BUILD_DIR
-  - python setup.py test
+  - python setup.py test --cython

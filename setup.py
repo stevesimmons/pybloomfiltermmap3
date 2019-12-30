@@ -22,27 +22,27 @@ ext_files = [
     "src/MurmurHash3.c",
 ]
 
-# Branch out based on `--no-cython` in `argv`.
-# Assume `--cython` as default to avoid having to deal with both params being there.
+# Branch out based on `--cython` in `argv`.
+# Assume no `--cython` as default.
 
-if "--no-cython" in sys.argv:
-    # Use the distributed `pybloomfilter.c`.
-    # Note that we let the exception bubble up if `pybloomfilter.c` doesn't exist.
-    ext_files.append("src/pybloomfilter.c")
-    sys.argv.remove("--no-cython")
-else:
+if "--cython" in sys.argv:
     # Cythonize `pybloomfilter.pyx`
     try:
         from Cython.Distutils import build_ext
     except ModuleNotFoundError:
         print(
             "Cython module not found. Hint: to build pybloomfilter using the distributed "
-            "source code, run 'python setup.py install --no-cython'."
+            "source code, simply run 'python setup.py install'."
         )
         sys.exit(1)
 
     ext_files.append("src/pybloomfilter.pyx")
     setup_kwargs["cmdclass"] = {"build_ext": build_ext}
+    sys.argv.remove("--cython")
+else:
+    # Use `pybloomfilter.c` distributed with the package.
+    # Note that we let the exception bubble up if `pybloomfilter.c` doesn't exist.
+    ext_files.append("src/pybloomfilter.c")
 
 ext_modules = [Extension("pybloomfilter", ext_files)]
 
