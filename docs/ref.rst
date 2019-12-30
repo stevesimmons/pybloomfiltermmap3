@@ -85,11 +85,11 @@ Instance Attributes
 
     Integer seeds used for the random hashing. Returns a list of integers.
 
-.. attribute:: BloomFilter.name -> bytes
+.. attribute:: BloomFilter.filename -> string
 
     File name (compatible with file objects). Does not apply to an in-memory
     :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
-    Returns an encoded string.
+    Returns a string.
 
 .. attribute:: BloomFilter.num_bits -> int
 
@@ -103,6 +103,14 @@ Instance Attributes
 
     Indicates if the opened :class:`BloomFilter` is read-only.
     Always ``False`` for an in-memory :class:`BloomFilter`.
+
+.. attribute:: BloomFilter.name -> bytes
+
+    PENDING DEPRECATION: use :meth:`BloomFilter.filename` instead.
+
+    File name (compatible with file objects). Does not apply to an in-memory
+    :class:`BloomFilter` and will raise :class:`ValueError` if accessed.
+    Returns an encoded string.
 
 
 Instance Methods
