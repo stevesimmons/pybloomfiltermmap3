@@ -8,19 +8,29 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
 
+`0.5.1`_ (2019-12-31)
+---------------------
+.. _0.5.1: https://github.com/prashnts/pybloomfiltermmap3/releases/tag/0.5.1
+
+Changes
+^^^^^^^
+- Add :meth:`BloomFilter.bit_array` property for bit vector representation
+- Add :meth:`BloomFilter.filename` property and issue a PendingDeprecationWarning when using :meth:`BloomFilter.name`
+- Do memset after initializing BloomFilter instance to set alignment bytes to 0 prior to populating the filter (see notes in #24)
+- Remove ``mode`` parameter from :meth:`BloomFilter.from_base64` method introduced in 0.5.0 as part of a refactoring (see notes in #23)
+- Add explicit flag to build using Cython when building or installing a package; setup looks for a bundled Cython
+  source by default (included in the PyPI distribution package)
+
+
 `0.5.0`_ (2019-11-25)
 ---------------------
 .. _0.5.0: https://github.com/prashnts/pybloomfiltermmap3/releases/tag/0.5.0
 
 Changes
 ^^^^^^^
-- Add support for read-only Bloom filter files (`@mizvyt <mizvyt_>`_)
-- Add customization of hash seeds for hashing algorithms (`@mizvyt <mizvyt_>`_)
-- Drop Python < 3.5 support (`@mizvyt <mizvyt_>`_)
-
-Fixes
-^^^^^
-- Fix installation errors due to missing Cython deps, should now be fixed (`@mizvyt <mizvyt_>`_)
+- Add support for read-only Bloom filter files
+- Add customization of hash seeds for hashing algorithms
+- Drop Python < 3.5 support
 
 
 `0.4.19`_ (2019-10-11)
@@ -29,7 +39,7 @@ Fixes
 
 Changes
 ^^^^^^^
-- Ensure that filename is encoded in :meth:`~pybloomfilter.BloomFilter.copy_template` (`@gonzalezzfelipe <gonzalezzfelipe_>`_)
+- Ensure that filename is encoded in :meth:`~pybloomfilter.BloomFilter.copy_template` (thanks `@gonzalezzfelipe <gonzalezzfelipe_>`_!)
 
 
 `0.4.18`_ (2019-10-08)
@@ -38,7 +48,7 @@ Changes
 
 Fixes
 ^^^^^
-- Fix missing Cython dependency in setup.py (`@mizvyt <mizvyt_>`_)
+- Fix missing Cython dependency in setup.py
 
 
 `0.4.17`_ (2019-08-25)
@@ -47,7 +57,7 @@ Fixes
 
 Fixes
 ^^^^^
-- PyPi wants ``long_description`` and its type (`@prashnts <prashnts_>`_)
+- PyPi wants ``long_description`` and its type
 
 
 `0.4.16`_ (2019-08-25)
@@ -56,7 +66,7 @@ Fixes
 
 Fixes
 ^^^^^
-- Fix read / write of base64 encoded filter files (`@gaetano-guerriero <gaetano-guerriero_>`_)
+- Fix read / write of base64 encoded filter files (thanks `@gaetano-guerriero <gaetano-guerriero_>`_!)
 
 
 `0.4.15`_ (2019-04-09)
@@ -65,7 +75,7 @@ Fixes
 
 Changes
 ^^^^^^^
-- Remove Python 2 support, add Python 3 support (`@prashnts <prashnts_>`_)
+- Remove Python 2 support, add Python 3 support
 
 
 Previous Versions

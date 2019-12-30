@@ -48,8 +48,8 @@ ext_modules = [Extension("pybloomfilter", ext_files)]
 
 setup(
     name="pybloomfiltermmap3",
-    version="0.5.0",
-    author="Michael Axiak, Rob Stacey, Prashant Sinha",
+    version="0.5.1",
+    author="Prashant Sinha",
     author_email="prashant@noop.pw",
     url="https://github.com/prashnts/pybloomfiltermmap3",
     description="A fast implementation of Bloom filter for Python 3 built on mmap",
