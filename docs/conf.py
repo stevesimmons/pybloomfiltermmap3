@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'pybloomfiltermmap3'
-copyright = '2010 - 2019, Michael Axiak, Rob Stacey, Prashant Sinha and others'
-author = 'Michael Axiak, Rob Stacey, Prashant Sinha and others'
+copyright = '2010 - 2019, Michael Axiak, Prashant Sinha, Vytautas Mizgiris and others'
+author = 'Michael Axiak, Prashant Sinha, Vytautas Mizgiris and others'
 
 # The full version, including alpha/beta/rc tags
 release = '0.5.1'
@@ -73,7 +73,7 @@ html_static_path = ['_static']
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [(
     'index', 'pybloomfiltermmap3_manual.tex', 'pybloomfiltermmap3 documentation',
-    'Michael Axiak, Rob Stacey, Prashant Sinha and others', 'manual'
+    'Michael Axiak, Prashant Sinha, Vytautas Mizgiris and others', 'manual'
 )]
 
 # The name of an image file (relative to this directory) to place at the top of
