@@ -1,14 +1,23 @@
 # pybloomfiltermmap3
 
-`pybloomfiltermmap3` is a `Python 3` compatible fork of `pybloomfiltermmap` by @axiak.
+[pybloomfiltermmap3](https://github.com/prashnts/pybloomfiltermmap3) is a Python 3 compatible fork of [pybloomfiltermmap](https://github.com/axiak/pybloomfiltermmap) by [@axiak](https://github.com/axiak).
 
-The goal of `pybloomfiltermmap3` is simple: to provide a fast, simple, scalable, correct library for Bloom Filters in Python.
+The goal of `pybloomfiltermmap3` is simple: to provide a fast, simple, scalable, correct library for Bloom filters in Python.
 
 [![Build Status](https://travis-ci.org/PrashntS/pybloomfiltermmap3.svg?branch=master)](https://travis-ci.org/PrashntS/pybloomfiltermmap3)
+[![Documentation Status](https://readthedocs.org/projects/pybloomfiltermmap3/badge/?version=latest)](https://pybloomfiltermmap3.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
 [![PyPI](https://img.shields.io/pypi/dw/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
 [![PyPI](https://img.shields.io/pypi/pyversions/pybloomfiltermmap3.svg)](https://pypi.python.org/pypi/pybloomfiltermmap3)
-[![Documentation Status](https://readthedocs.org/projects/pybloomfiltermmap3/badge/?version=latest)](https://pybloomfiltermmap3.readthedocs.io/en/latest/?badge=latest)
+
+
+## Why pybloomfiltermmap3?
+
+There are a couple reasons to use this module:
+
+* It natively uses [mmaped files](http://en.wikipedia.org/wiki/Mmap).
+* It is fast (see [benchmarks](http://axiak.github.io/pybloomfiltermmap/#benchmarks)).
+* It natively does the set things you want a Bloom filter to do.
 
 
 ## Quickstart
@@ -31,16 +40,15 @@ To create an in-memory filter, simply omit the file location:
 ```python
     >>> cakes = pybloomfilter.BloomFilter(10000, 0.1)
 ```
-*Caveat*: It is currently not possible to persist this filter later.
+*Caveat*: it is currently not possible to persist this filter later.
 
 
 ## Docs
 
 Current docs are available at [pybloomfiltermmap3.rtfd.io](https://pybloomfiltermmap3.readthedocs.io/en/latest).
 
-## Install
 
-Please note that this version is **specifically** meant for Python 3. In case you need Python 2, please see https://github.com/axiak/pybloomfiltermmap.
+## Install
 
 To install:
 
@@ -50,29 +58,32 @@ To install:
 
 and you should be set.
 
+### Note to Python 2 to < 3.5 users
+
+This library is specifically meant for Python 3.5 and above. [As of 2020](https://www.python.org/doc/sunset-python-2/), we strongly advise you to switch to an actively maintained distribution of Python 3. If for any reason your current environment is restricted to Python 2, please see [pybloomfiltermmap](https://github.com/axiak/pybloomfiltermmap). Please note that the latter is not actively maintained and will lack bug fixes and new features.
+
+
 ## History and Future
 
-`pybloomfiltermmap` is an excellent `bloomfiler` implementation for `Python 2` by @axiak and contributors.
-I (@prashnts) made tiny changes to add support for `Python 3` sometime in 2016 as `pybloomfiltermmap3` on
-`PyPI`. Since then through the help of contributors there has been incremental improvements and bugfixes
-while maintaining the API in `v0.4.x`. Since Nov. 2019, @mizvyt joined in this project and has made tons
-of fixes, and added support for Read-Only bloomfilters (check #12).
+[pybloomfiltermmap](https://github.com/axiak/pybloomfiltermmap) is an excellent Bloom filter implementation for Python 2 by [@axiak](https://github.com/axiak) and contributors. I, [@prashnts](https://github.com/prashnts), made initial changes to add support for Python 3 sometime in 2016 as the current [pybloomfiltermmap3](https://pypi.org/project/pybloomfiltermmap3/) on `PyPI`. Since then, with the help of contributors, there have been incremental improvements and bug fixes while maintaining the API from versions `0.4.x` and below.
 
-We're moving the new changes to `v0.5.x` and onwards. The goal would be to reach stability as well as add
-few more APIs to expand upon the use cases. While this won't be guaranteed to not remove or change the
-interface, the transition from `v0.4.x` should be quick one liners. Please open an issue if we broke your
-build!
+Some new features and changes were first introduced in version `0.5.0`. From this point on, the goal is to reach stability, as well as add a few more APIs to expand upon the use cases. While we can't guarantee that we won't change the current interface, the transition from versions `0.4.x` and below should be quick one liners. Please open an issue if we broke your build!
 
-Suggestions, bug reports, and/or patches are welcome!
-
-
-## License
-
-See the LICENSE file. It's under the MIT License.
+Suggestions, bug reports, and / or patches are welcome!
 
 
 ## Contributions and development
 
 When contributing, you should set up an appropriate Python 3 environment and install the dependencies listed in `requirements-dev.txt`.
-This package depends on generation of `pybloomfilter.c` and requires Cython to be packaged.
+Package installation depends on a generated `pybloomfilter.c` file, which requires Cython module to be in your current environment.
 
+
+## Maintainers
+
+* [Prashant Sinha](https://github.com/prashnts)
+* [Vytautas Mizgiris](https://github.com/mizvyt)
+
+
+## License
+
+See the LICENSE file. It's under the MIT License.
