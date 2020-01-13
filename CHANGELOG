@@ -8,6 +8,17 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
 
+`0.5.2`_ (2020-01-13)
+---------------------
+.. _0.5.2: https://github.com/prashnts/pybloomfiltermmap3/releases/tag/0.5.2
+
+Changes
+^^^^^^^
+- Python setup will now always try to use and build from Cython, if the module is available in the current environment.
+  To force cythonize, use "--cython". If the module is not available and no "--cython" was used, the setup
+  will look for a bundled Cython source.
+
+
 `0.5.1`_ (2019-12-31)
 ---------------------
 .. _0.5.1: https://github.com/prashnts/pybloomfiltermmap3/releases/tag/0.5.1
