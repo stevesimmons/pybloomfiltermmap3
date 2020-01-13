@@ -28,6 +28,10 @@ version = 'latest'
 
 # -- General configuration ---------------------------------------------------
 
+# Set the master document explicitly to solve the following issue on RTD:
+# https://github.com/readthedocs/readthedocs.org/issues/2569
+master_doc = 'index'
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
