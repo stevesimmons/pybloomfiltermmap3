@@ -22,23 +22,32 @@ ext_files = [
     "src/MurmurHash3.c",
 ]
 
-# Branch out based on `--cython` in `argv`.
-# Assume no `--cython` as default.
+# Branch out based on `--cython` in `argv`. Specifying `--cython` will try to cythonize source whether
+# Cython module is available or not (`force_cythonize`).
+cythonize = True
+force_cythonize = False
 
 if "--cython" in sys.argv:
-    # Cythonize `pybloomfilter.pyx`
-    try:
-        from Cython.Distutils import build_ext
-    except ModuleNotFoundError:
+    force_cythonize = True
+    sys.argv.remove("--cython")
+
+# Always try to cythonize `pybloomfilter.pyx` if Cython is available
+# or if `--cython` was passed
+try:
+    from Cython.Distutils import build_ext
+except ModuleNotFoundError:
+    if force_cythonize:
         print(
-            "Cython module not found. Hint: to build pybloomfilter using the distributed "
+            "Cannot Cythonize: Cython module not found. "
+            "Hint: to build pybloomfilter using the distributed "
             "source code, simply run 'python setup.py install'."
         )
         sys.exit(1)
+    cythonize = False
 
+if cythonize:
     ext_files.append("src/pybloomfilter.pyx")
     setup_kwargs["cmdclass"] = {"build_ext": build_ext}
-    sys.argv.remove("--cython")
 else:
     # Use `pybloomfilter.c` distributed with the package.
     # Note that we let the exception bubble up if `pybloomfilter.c` doesn't exist.
