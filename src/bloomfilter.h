@@ -36,8 +36,8 @@ BloomFilter *bloomfilter_Create_Mmap(size_t max_num_elem, double error_rate,
                                 int *hash_seeds, int num_hashes);
 
 void bloomfilter_Destroy(BloomFilter * bf);
-
 int bloomfilter_Update(BloomFilter * bf, char * data, int size);
+int bloomfilter_Clear(BloomFilter * bf);
 
 BloomFilter * bloomfilter_Copy_Template(BloomFilter * src, char * filename, int perms);
 

@@ -41,6 +41,7 @@ BloomFilter *bloomfilter_Create_Malloc(size_t max_num_elem, double error_rate,
     return bf;
 }
 
+
 BloomFilter *bloomfilter_Create_Mmap(size_t max_num_elem, double error_rate,
                                 const char * file, BTYPE num_bits, int oflags, int perms,
                                 int *hash_seeds, int num_hashes)
@@ -108,6 +109,7 @@ void bloomfilter_Print(BloomFilter * bf)
            (unsigned long)bf->max_num_elem, bf->error_rate, bf->num_hashes);
 }
 
+
 int bloomfilter_Update(BloomFilter * bf, char * data, int size)
 {
     MBArray * array = bf->array;
@@ -119,6 +121,17 @@ int bloomfilter_Update(BloomFilter * bf, char * data, int size)
         return 1;
     }
     bf->array = array;
+    return 0;
+}
+
+
+int bloomfilter_Clear(BloomFilter * bf)
+{
+    int retval = mbarray_ClearAll(bf->array);
+    if (retval) {
+        return retval;
+    }
+    bf->elem_count = 0;
     return 0;
 }
 

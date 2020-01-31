@@ -308,7 +308,7 @@ cdef class BloomFilter:
         """Removes all elements from the Bloom filter at once."""
         self._assert_open()
         self._assert_writable()
-        cbloomfilter.mbarray_ClearAll(self._bf.array)
+        cbloomfilter.bloomfilter_Clear(self._bf)
 
     def __contains__(self, item_):
         """Checks to see if item is contained in the filter, with

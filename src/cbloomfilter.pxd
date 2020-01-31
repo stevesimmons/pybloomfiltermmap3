@@ -52,4 +52,5 @@ cdef extern from "bloomfilter.h":
      int bloomfilter_Add(BloomFilter * bf, Key * key)
      int bloomfilter_Test(BloomFilter * bf, Key * key)
      int bloomfilter_Update(BloomFilter * bf, char * data, int size)
+     int bloomfilter_Clear(BloomFilter * bf)
      BloomFilter * bloomfilter_Copy_Template(BloomFilter * src, char * filename, int perms)
