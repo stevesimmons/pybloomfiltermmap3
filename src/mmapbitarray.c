@@ -253,7 +253,7 @@ int mbarray_ClearAll(MBArray * array)
 
 MBArray * mbarray_And(MBArray * dest, MBArray * array2)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(dest, array2))
         return NULL;
 
@@ -266,7 +266,7 @@ MBArray * mbarray_And(MBArray * dest, MBArray * array2)
 
 MBArray * mbarray_Or(MBArray * dest, MBArray * array2)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(dest, array2))
         return NULL;
     for (i = 0; i < dest->size + dest->preamblesize; i++) {
@@ -278,7 +278,7 @@ MBArray * mbarray_Or(MBArray * dest, MBArray * array2)
 
 MBArray * mbarray_Xor(MBArray * dest, MBArray * array2)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(dest, array2))
         return NULL;
 
@@ -291,7 +291,7 @@ MBArray * mbarray_Xor(MBArray * dest, MBArray * array2)
 
 MBArray * mbarray_And_Ternary(MBArray * dest, MBArray * a, MBArray * b)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(a, b) || _assert_comparable(dest, b))
         return NULL;
 
@@ -303,7 +303,7 @@ MBArray * mbarray_And_Ternary(MBArray * dest, MBArray * a, MBArray * b)
 
 MBArray * mbarray_Or_Ternary(MBArray * dest, MBArray * a, MBArray * b)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(a, b) || _assert_comparable(dest, b))
         return NULL;
 
@@ -315,7 +315,7 @@ MBArray * mbarray_Or_Ternary(MBArray * dest, MBArray * a, MBArray * b)
 
 MBArray * mbarray_Xor_Ternary(MBArray * dest, MBArray * a, MBArray * b)
 {
-    register int i;
+    register size_t i;
     if (_assert_comparable(a, b) || _assert_comparable(dest, b))
         return NULL;
 
