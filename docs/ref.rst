@@ -13,7 +13,7 @@ BloomFilter Class Reference
     :param int capacity: the maximum number of elements this filter
         can contain while keeping the false positive rate under ``error_rate``.
     :param float error_rate: false positive probability that will hold
-        given that ``capacity`` is not exceeded.
+        given that ``capacity`` is not exceeded. Must be between 0-1.
     :param str filename: filename to use to create the new Bloom filter.
         If a filename is not provided, an in-memory Bloom filter will be created.
     :param int perm: (*not applicable for an in-memory Bloom filter*)
