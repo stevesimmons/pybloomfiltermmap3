@@ -356,6 +356,34 @@ class SimpleTestCase(unittest.TestCase):
         # Should be identical as data was hashed into the same locations
         assert bf1_ba ^ bf2_ba == 0
 
+    def test_bit_count(self):
+        bf0 = pybloomfilter.BloomFilter(100, 0.1)
+        bf1 = pybloomfilter.BloomFilter(100, 0.1)
+        bf1.add('a')
+        bf100 = pybloomfilter.BloomFilter(100, 0.1, hash_seeds=[1, 2, 3])
+        for i in range(100):
+            bf100.add(str(i))
+
+        assert bf0.bit_count() == 0
+        assert bf1.bit_count() == bf1.num_hashes
+        assert bf100.bit_count() == 213
+
+    def test_approximate_size_after_union_called(self):
+        bf1 = pybloomfilter.BloomFilter(100, 0.1, self.tempfile.name,
+                                        hash_seeds=[1, 2, 3])
+        for i in range(0, 20):
+            bf1.add(str(i))
+        bf2 = pybloomfilter.BloomFilter(100, 0.1, self.tempfile.name + '.50',
+                                        hash_seeds=[1, 2, 3])
+        for i in range(10, 30):  # intersectoin size: 10
+            bf2.add(str(i))
+        union_bf = bf1.copy(self.tempfile.name + '.union')
+        union_bf.union(bf2)
+
+        assert len(union_bf) == 29  # approximate size
+        intersection = len(bf1) + len(bf2) - len(union_bf)
+        assert intersection == 11  # approximate size
+
 
 def suite():
     suite = unittest.TestSuite()

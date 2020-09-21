@@ -45,10 +45,6 @@ cdef _construct_mode(mode):
     return result
 
 
-class IndeterminateCountError(ValueError):
-    pass
-
-
 cdef class BloomFilter:
     """
     Creates a new BloomFilter object with a given capacity and error_rate.
@@ -394,17 +390,16 @@ cdef class BloomFilter:
         added to the :class:`BloomFilter` object, subject to the error
         given in :attr:`BloomFilter.error_rate`.
 
-        Raises :class:`IndeterminateCountError` if a the Bloom filter
-        was a result of a set operation.
-
         :param item: hashable object
         :rtype: int
         """
         self._assert_open()
         if not self._bf.count_correct:
-            raise IndeterminateCountError("Length of %s object is unavailable "
-                                          "after intersection or union called." %
-                                          self.__class__.__name__)
+            # Calculate approximate size. See also:
+            # - https://en.wikipedia.org/wiki/Bloom_filter#The_union_and_intersection_of_sets
+            # - https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.1063.3591&rep=rep1&type=pdf
+            return round(- self.num_bits / self.num_hashes * math.log(
+                1 - self.bit_count() / self.num_bits, math.e))
         return self._bf.elem_count
 
     def close(self):
@@ -528,3 +523,8 @@ cdef class BloomFilter:
         instance = cls(NoConstruct, 0)
         instance._open(filename, mode)
         return instance
+
+    def bit_count(self):
+        """Number of bits set to one."""
+        self._assert_open()
+        return cbloomfilter.mbarray_BitCount(self._bf.array)
