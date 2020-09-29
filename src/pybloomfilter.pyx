@@ -239,6 +239,27 @@ cdef class BloomFilter:
         self._assert_open()
         return self._bf.array.bits
 
+    @property
+    def bit_count(self):
+        """Number of bits set to one."""
+        self._assert_open()
+        return cbloomfilter.mbarray_BitCount(self._bf.array)
+
+    @property
+    def approx_len(self):
+        """Approximate number of items in the set.
+
+        See also:
+        - https://en.wikipedia.org/wiki/Bloom_filter#The_union_and_intersection_of_sets
+        - https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.1063.3591&rep=rep1&type=pdf
+        """
+        m = self.num_bits
+        k = self.num_hashes
+        X = self.bit_count
+
+        n = -(m / k) * math.log(1 - (X / m), math.e)
+        return round(n)
+
     def _name(self):
         self._assert_open()
         if self._in_memory:
@@ -390,16 +411,16 @@ cdef class BloomFilter:
         added to the :class:`BloomFilter` object, subject to the error
         given in :attr:`BloomFilter.error_rate`.
 
+        The length reported here is exact as long as no set `union` or
+        `intersection` were performed. Otherwise we report an approximation
+        of based on :attr:`BloomFilter.bit_count`.
+
         :param item: hashable object
         :rtype: int
         """
         self._assert_open()
         if not self._bf.count_correct:
-            # Calculate approximate size. See also:
-            # - https://en.wikipedia.org/wiki/Bloom_filter#The_union_and_intersection_of_sets
-            # - https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.1063.3591&rep=rep1&type=pdf
-            return round(- self.num_bits / self.num_hashes * math.log(
-                1 - self.bit_count() / self.num_bits, math.e))
+            return self.approx_len
         return self._bf.elem_count
 
     def close(self):
@@ -523,8 +544,3 @@ cdef class BloomFilter:
         instance = cls(NoConstruct, 0)
         instance._open(filename, mode)
         return instance
-
-    def bit_count(self):
-        """Number of bits set to one."""
-        self._assert_open()
-        return cbloomfilter.mbarray_BitCount(self._bf.array)

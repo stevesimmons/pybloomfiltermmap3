@@ -339,7 +339,7 @@ class SimpleTestCase(unittest.TestCase):
         items = []
         for i in range(capacity):
             items.append(randint(0, 1000))
-        
+
         # File-backed
         bf1 = pybloomfilter.BloomFilter(capacity, 0.01, self.tempfile.name)
         bf1.update(items)
@@ -364,9 +364,9 @@ class SimpleTestCase(unittest.TestCase):
         for i in range(100):
             bf100.add(str(i))
 
-        assert bf0.bit_count() == 0
-        assert bf1.bit_count() == bf1.num_hashes
-        assert bf100.bit_count() == bin(bf100.bit_array).count('1')
+        assert bf0.bit_count == 0
+        assert bf1.bit_count == bf1.num_hashes
+        assert bf100.bit_count == bin(bf100.bit_array).count('1')
 
     def test_approximate_size_after_union_called(self):
         bf1 = pybloomfilter.BloomFilter(100, 0.1, self.tempfile.name,
